@@ -2,7 +2,7 @@ from raspi.sensor import sensor_model
 from mpu6050 import mpu6050
 
 
-class AccelerationSensor(sensor_model=sensor_model.AbstractSensor):
+class AccelerationSensor(sensor_model.AbstractSensor):
     """
     https://pypi.python.org/pypi/mpu6050-raspberrypi/
     """
@@ -25,3 +25,6 @@ class AccelerationSensor(sensor_model=sensor_model.AbstractSensor):
         """
         accelerometer_data = self.sensor.get_accel_data(g=False)
         return sensor_model.SensorReading(accelerometer_data)
+
+    def is_ok(self):
+        return "true"

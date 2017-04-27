@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import datetime
+import uuid
 
 
 class AbstractSensor (metaclass=ABCMeta):
@@ -7,6 +8,9 @@ class AbstractSensor (metaclass=ABCMeta):
     Example class:
     Provides an abstraction over the interface of an actual IC.
     """
+
+    def __init__(self):
+        self.sensor_id = uuid.uuid4
 
     @abstractmethod
     def get_ic(self):
@@ -18,6 +22,10 @@ class AbstractSensor (metaclass=ABCMeta):
         """
         :return: reading obtained from the sensor
         """
+        pass
+
+    @abstractmethod
+    def is_ok(self):
         pass
 
 
