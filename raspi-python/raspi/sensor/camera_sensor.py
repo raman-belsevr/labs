@@ -5,6 +5,9 @@ from RPi import picamera
 
 class CameraSensor(sensor_model.AbstractSensor):
 
+    def is_ok(self):
+        return "true"
+
     def __init__(self, sensor_id, image_file='image1.jpg', video_file='video1.h264'):
         self.id = sensor_id
         self.image_file = image_file
