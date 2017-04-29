@@ -7,8 +7,9 @@ class AccelerationSensor(sensor_model.AbstractSensor):
     https://pypi.python.org/pypi/mpu6050-raspberrypi/
     """
 
-    def __init__(self):
+    def __init__(self, sensor_id):
         self.sensor = mpu6050(0x68)
+        super(AccelerationSensor, self).__init__(sensor_id)
 
     def get_ic(self):
         return "acceleration sensor"

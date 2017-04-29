@@ -11,9 +11,10 @@ class UltraSonicDistanceSensor(sensor_model.AbstractSensor):
     def is_ok(self):
         return "true"
 
-    def __init__(self, echo=17, trigger=4, threshold_distance=0.5, max_distance=2):
+    def __init__(self, sensor_id, echo=17, trigger=4, threshold_distance=0.5, max_distance=2):
         self.ultrasonic = DistanceSensor(echo, trigger, threshold_distance, max_distance)
         DistanceSensor.__configure__()
+        super(UltraSonicDistanceSensor, self).__init__(sensor_id)
 
     def get_ic(self):
         return "ultra_sonic_distance_sensor"
