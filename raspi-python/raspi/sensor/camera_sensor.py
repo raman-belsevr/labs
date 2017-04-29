@@ -9,10 +9,11 @@ class CameraSensor(sensor_model.AbstractSensor):
         return "true"
 
     def __init__(self, sensor_id, image_file='image1.jpg', video_file='video1.h264'):
-        self.id = sensor_id
         self.image_file = image_file
         self.video_file = video_file
         self.camera = picamera.PiCamera()
+        super(CameraSensor, self).__init__(sensor_id)
+
 
     def get_ic(self):
         return "camera"

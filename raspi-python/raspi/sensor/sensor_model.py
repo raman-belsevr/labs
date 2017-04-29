@@ -9,8 +9,8 @@ class AbstractSensor (metaclass=ABCMeta):
     Provides an abstraction over the interface of an actual IC.
     """
 
-    def __init__(self):
-        self.sensor_id = uuid.uuid4
+    def __init__(self, sensor_id):
+        self.sensor_id = sensor_id
 
     @abstractmethod
     def get_ic(self):
