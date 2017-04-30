@@ -8,7 +8,7 @@ class FlightController:
         Logging.logger.info("Initialized flight controller")
 
     def get_state(self):
-        return self.drone.get_status()
+        return self.drone.get_state()
 
     def act(self, current_state, next_state):
         pass
