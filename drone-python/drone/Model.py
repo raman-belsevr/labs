@@ -3,6 +3,7 @@ from raspi.sensor import distance_sensor
 from raspi.sensor import camera_sensor
 from raspi.sensor import acceleration_sensor
 from raspi.sensor import battery_sensor
+from raspi.sensor import waypoint_sensor
 
 
 # actuate sensors
@@ -84,6 +85,8 @@ class DroneSystem:
     def get_state(self):
         distance_vector = self.distance_vector(list())
         accln_vector = self.accln_vector()
+        way_point = self.waypoint_sensor()
+        return DroneState(distance_vector, accln_vector, way_point)
 
 
 
