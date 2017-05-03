@@ -75,7 +75,7 @@ class FlightController:
 
         self.loopThread = threading.Thread(target=self.loop)
         if self.ser.isOpen():
-            print("Wait 5 sec for calibrate Multiwii")
+            print("Wait 5 sec for calibrate the communication protocol")
             time.sleep(5)
             self.loopThread.start()
 
@@ -94,13 +94,21 @@ class FlightController:
         try:
             ser.open()
         except Exception as e:
-             Logging.logger.error("Unable to open serial port % " % str(e))
-             exit()
+            Logging.logger.error("Unable to open serial port % " % str(e))
+            exit()
 
     def stop(self):
         self.started = False
 
-    def set_rc(self):
-        self.protocol.send_data(8, self.protocol.CMD2CODE["MSP_SET_RAW_RC"], self.rcData)
-        time.sleep(self.timeMSP)
-        # print self.rcData
+    def send_rc_data(self, rc_data):
+        self.rcData = rc_data
+
+    def loop(self):
+        try:
+            while self.started:
+                if self.SET_RC:
+                    self.protocol.send_rc_data(8, self.rcData)
+                    time.sleep(self.timeMSP)
+            self.ser.close()
+        except Exception as e:
+            Logging.logger.error("Exception in operating flight controller loop")

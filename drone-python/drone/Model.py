@@ -110,6 +110,7 @@ class Directions:
     front_right = "front_right"
     all = "all"
 
+
 class DistanceVector:
     
     def __init__(self,
@@ -133,15 +134,12 @@ class DistanceVector:
 
 class AcclnVector:
 
-    def __init__(self,
-                 accln_front,
-                 accln_right,
-                 accln_up):
+    def __init__(self, accln_front, accln_right, accln_up):
         self.accln_front = accln_front
         self.accln_right = accln_right
-        self.accln_up  = accln_up
+        self.accln_up = accln_up
 
-     @staticmethod
+    @staticmethod
     def build(accln_reading):
         return AcclnVector(0, 0, 0) #TODO fix this!
 
@@ -158,7 +156,9 @@ class WayPoint:
 
 
 class DroneState:
-
+    """
+    Represents the dynamic instantaneous state of a drone
+    """
     def __init__(self, distance_vector, accln_vector, way_point):
         self.distance_vector = distance_vector
         self.accln_vector = accln_vector
@@ -166,7 +166,10 @@ class DroneState:
 
 
 class DroneStatus:
-
+    """
+    Represents the health of the drone, i.e. battery life remaining and
+    working status of on-board sensors.
+    """
     def __init__(self):
         self.battery = 100
         self.front_distance_sensor = "ok"

@@ -1,7 +1,26 @@
 import struct		# for decoding data strings
+from raspi.fc import communication
 
 
-class MultiwiiSerialProtocol:
+class MultiwiiSerialProtocol(communication.AbstractCommunicationProtocol):
+
+    def send_rc_data(self, data_length, data):
+        checksum = 0
+        code = self.CMD2CODE["MSP_SET_RAW_RC"]
+        total_data = ['$', 'M', '<', data_length, code] + data
+        for i in struct.pack('<2B%dh' % len(data), *total_data[3:len(total_data)]):
+            checksum = checksum ^ ord(i)
+
+        total_data.append(checksum)
+
+        try:
+            b = None
+            b = self.ser.write(struct.pack('<3c2B%dhB' % len(data), *total_data))
+        except Exception as ex:
+            print
+            'send data error'
+            print(ex)
+        return b
 
     def __init__(self):
         ###############################
@@ -60,20 +79,3 @@ class MultiwiiSerialProtocol:
             'MSP_IS_SERIAL': 211,
             'MSP_DEBUG': 254,
         }
-
-    def send_data(self, data_length, code, data):
-        checksum = 0
-        total_data = ['$', 'M', '<', data_length, code] + data
-        for i in struct.pack('<2B%dh' % len(data), *total_data[3:len(total_data)]):
-            checksum = checksum ^ ord(i)
-
-        total_data.append(checksum)
-
-        try:
-            b = None
-            b = self.ser.write(struct.pack('<3c2B%dhB' % len(data), *total_data))
-        except Exception as ex:
-            print
-            'send data error'
-            print(ex)
-        return b
