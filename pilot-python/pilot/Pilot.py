@@ -1,4 +1,4 @@
-from drone import Model
+from drone import drone_model
 from pilot import FlightController
 from pilot import Scheduler
 from pilot import Model
@@ -9,11 +9,11 @@ class Pilot:
 
     def __init__(self):
         Logging.logger.info("initializing pilot")
-        self.drone = Model.DroneSystem()
+        self.drone = drone_model.DroneSystem()
         self.flight_controller = FlightController(self.drone)
         self.atc = None
         self.scheduler = Scheduler()
-        self.flight_state = Model.FlightState()
+        self.flight_state = drone_model.FlightState()
 
     @staticmethod
     def validate_state(state):
