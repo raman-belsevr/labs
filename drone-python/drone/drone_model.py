@@ -1,10 +1,4 @@
 from abc import ABCMeta, abstractmethod
-from raspi.sensor import sensor_model
-from raspi.sensor import acceleration_sensor
-from raspi.sensor import battery_sensor
-from raspi.sensor import waypoint_sensor
-from raspi.fc import fc_model
-from drone import util
 
 
 class AbstractDroneSystem(metaclass=ABCMeta):
@@ -13,103 +7,56 @@ class AbstractDroneSystem(metaclass=ABCMeta):
         self.name = name
 
     @abstractmethod
-    def aileron(self, delta):
+    def control_system(self):
         pass
 
-    def thrust(self, delta):
-        pass
-
-    def yaw(self, delta):
-        pass
-
-    def roll(self, delta):
+    @abstractmethod
+    def media_system(self):
         pass
 
 
-class DroneSystem (AbstractDroneSystem):
-
-    def roll(self, delta):
-        self.flight_controller.send_rc_data(delta)
-
-    def aileron(self, delta):
-        self.flight_controller.send_rc_data(delta)
-
-    def yaw(self, delta):
-        self.flight_controller.send_rc_data(delta)
-
-    def thrust(self, delta):
-        self.flight_controller.send_rc_data(delta)
+class AbstractDroneControlSystem(metaclass=ABCMeta):
 
     def __init__(self, name):
-        super(DroneSystem, self).__init__(name)
+        self.name = name
 
-        # initialize flight controller
-        self.flight_controller = fc_model.FlightController("spf3", "usb_port")
+    @abstractmethod
+    def aileron(self, delta):
+        pass
 
-        # initialize battery sensor
-        self.battery_sensor = battery_sensor.BatterySensor(util.sensor_id(Sensor.battery, ""))
+    @abstractmethod
+    def thrust(self, delta):
+        pass
 
-        # initialize distance sensors
-        self.distance_sensor_front = util.distance_sensor(Directions.front)
-        self.distance_sensor_rear = util.distance_sensor(Directions.rear)
-        self.distance_sensor_left = util.distance_sensor(Directions.left)
-        self.distance_sensor_right = util.distance_sensor(Directions.right)
-        self.distance_sensor_up = util.distance_sensor(Directions.up)
-        self.distance_sensor_down = sensor_model.DistanceSensor(Directions.down)
+    @abstractmethod
+    def yaw(self, delta):
+        pass
 
-        # initialize front camera
-        self.front_left_camera = util.camera_sensor(Directions.front_left)
-        self.front_right_camera = util.camera_sensor(Directions.front_right)
-
-        # initialize acceleration sensor
-        self.acceleration_sensor = acceleration_sensor.AccelerationSensor()
-
-        # waypoint sensor
-        self.waypoint_sensor = waypoint_sensor.WaypointSensor()
-
-        self.distance_sensor_switcher = {
-            self.distance_sensor_front.sensor_id : self.distance_sensor_front,
-            self.distance_sensor_rear.sensor_id: self.distance_sensor_rear,
-            self.distance_sensor_left.sensor_id: self.distance_sensor_left,
-            self.distance_sensor_right.sensor_id: self.distance_sensor_right,
-            self.distance_sensor_up.sensor_id: self.distance_sensor_up,
-            self.distance_sensor_down.sensor_id: self.distance_sensor_down,
-        }
-
-    def distance_vector(self, include = list()):
-        if include.count > 0:
-            qualified_include = map(lambda sensor_id: Sensor.distance + "_" + sensor_id , include)
-            reqd_sensors = list(filter(lambda sensor_id: sensor_id in qualified_include, self.distance_sensor_switcher.keys))
-        else:
-            reqd_sensors = list(self.distance_sensor_switcher.keys)
-
-        distances = dict(map(lambda sensor_id: {sensor_id: self.distance_sensor_switcher.get(sensor_id).get_reading()}, reqd_sensors))
-        return DistanceVector.build(distances)
-
-    def accln_vector(self):
-        return AcclnVector.build(self.acceleration_sensor.get_reading())
+    @abstractmethod
+    def roll(self, delta):
+        pass
 
 
-    def distance(self, direction):
-        sensor_id = DroneSystem.sensor_id(Sensor.distance, direction)
-        return self.distance_sensor_switcher.get(sensor_id).get_reading()
+class AbstractDroneMediaSystem(metaclass=ABCMeta):
 
-    def image(self, direction):
-        sensor_id = DroneSystem.sensor_id(Sensor.camera, direction)
-        return self.distance_sensor_switcher.get(sensor_id).get_reading()
+    def __init__(self, name):
+        self.name = name
 
-    def acceleration(self):
-        return self.acceleration_sensor.get_reading()
+    @abstractmethod
+    def image_front_left(self):
+        pass
 
-    def get_status(self):
-        # all sensors ok?
-        return DroneStatus()
-    
-    def get_state(self):
-        distance_vector = self.distance_vector(list())
-        accln_vector = self.accln_vector()
-        way_point = self.waypoint_sensor()
-        return DroneState(distance_vector, accln_vector, way_point)
+    @abstractmethod
+    def image_front_right(self):
+        pass
+
+    @abstractmethod
+    def record_front_left(self):
+        pass
+
+    @abstractmethod
+    def record_front_right(self):
+        pass
 
 
 class Sensor:

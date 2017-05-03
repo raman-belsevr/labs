@@ -1,0 +1,113 @@
+from drone.drone_model import AbstractDroneControlSystem
+from raspi.sensor.distance_sensor import UltraSonicDistanceSensor
+from raspi.sensor.camera_sensor import CameraSensor
+from drone.drone_model import Directions
+from raspi.sensor.battery_sensor import BatterySensor
+from raspi.fc.fc_model import FlightController
+from raspi.sensor.acceleration_sensor import AccelerationSensor
+from raspi.sensor.waypoint_sensor import WaypointSensor
+from drone.drone_model import Sensor
+from drone.drone_model import DistanceVector
+from drone.drone_model import AcclnVector
+from drone.drone_model import DroneState
+from drone.drone_model import DroneStatus
+
+
+class DroneControlSystem(AbstractDroneControlSystem):
+
+    def roll(self, delta):
+        self.flight_controller.aileron(delta)
+
+    def aileron(self, delta):
+        self.flight_controller.thrust(delta)
+
+    def yaw(self, delta):
+        self.flight_controller.yaw(delta)
+
+    def thrust(self, delta):
+        self.flight_controller.roll(delta)
+
+    def __init__(self, name):
+        super(DroneControlSystem, self).__init__(name)
+
+        # initialize flight controller
+        self.flight_controller = FlightController("spf3", "usb_port")
+
+        # initialize battery sensor
+        self.battery_sensor = BatterySensor(self.sensor_id(Sensor.battery, ""))
+
+        # initialize distance sensors
+        self.distance_sensor_front = self.distance_sensor(Directions.front)
+        self.distance_sensor_rear = self.distance_sensor(Directions.rear)
+        self.distance_sensor_left = self.distance_sensor(Directions.left)
+        self.distance_sensor_right = self.distance_sensor(Directions.right)
+        self.distance_sensor_up = self.distance_sensor(Directions.up)
+        self.distance_sensor_down = self.distance_sensor(Directions.down)
+
+        # initialize front camera
+        self.front_left_camera = self.camera_sensor(Directions.front_left)
+        self.front_right_camera = self.camera_sensor(Directions.front_right)
+
+        # initialize acceleration sensor
+        self.acceleration_sensor = AccelerationSensor()
+
+        # waypoint sensor
+        self.waypoint_sensor = WaypointSensor()
+
+        self.sensor_switcher = {
+            self.distance_sensor_front.sensor_id: self.distance_sensor_front,
+            self.distance_sensor_rear.sensor_id: self.distance_sensor_rear,
+            self.distance_sensor_left.sensor_id: self.distance_sensor_left,
+            self.distance_sensor_right.sensor_id: self.distance_sensor_right,
+            self.distance_sensor_up.sensor_id: self.distance_sensor_up,
+            self.distance_sensor_down.sensor_id: self.distance_sensor_down,
+            self.front_left_camera.sensor_id: self.front_left_camera,
+            self.front_right_camera.sensor_id: self.front_right_camera
+        }
+
+    @staticmethod
+    def distance_sensor(self, direction):
+        return UltraSonicDistanceSensor(self.sensor_id(self.Sensor.distance, direction))
+
+    @staticmethod
+    def camera_sensor(self, direction):
+        return CameraSensor(self.sensor_id(self.Sensor.camera, direction))
+
+    @staticmethod
+    def sensor_id(sensor, direction):
+        return sensor + "_" + direction
+
+    def distance_vector(self, include=list()):
+        if include.count > 0:
+            qualified_include = map(lambda sensor_id: Sensor.distance + "_" + sensor_id, include)
+            reqd_sensors = list(filter(lambda sensor_id: sensor_id in qualified_include, self.sensor_switcher.keys))
+        else:
+            reqd_sensors = list(self.sensor_switcher.keys)
+
+        distances = dict(
+            map(lambda sensor_id: {sensor_id: self.sensor_switcher.get(sensor_id).get_reading()}, reqd_sensors))
+        return DistanceVector.build(distances)
+
+    def accln_vector(self):
+        return AcclnVector.build(self.acceleration_sensor.get_reading())
+
+    def distance(self, direction):
+        sensor_id = self.sensor_id(Sensor.distance, direction)
+        return self.sensor_switcher.get(sensor_id).get_reading()
+
+    def image(self, direction):
+        sensor_id = self.sensor_id(Sensor.camera, direction)
+        return self.sensor_switcher.get(sensor_id).get_reading()
+
+    def acceleration(self):
+        return self.acceleration_sensor.get_reading()
+
+    def get_status(self):
+        # all sensors ok?
+        return DroneStatus()
+
+    def get_state(self):
+        distance_vector = self.distance_vector(list())
+        accln_vector = self.accln_vector()
+        way_point = self.waypoint_sensor()
+        return DroneState(distance_vector, accln_vector, way_point)
