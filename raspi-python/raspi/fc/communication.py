@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from enum import Enum
 
 
 class AbstractCommunicationProtocol(metaclass=ABCMeta):
@@ -14,3 +15,10 @@ class AbstractCommunicationProtocol(metaclass=ABCMeta):
         """
         pass
 
+
+class FlightControl(Enum):
+
+    aileron = 1
+    thrust = 2
+    yaw = 3
+    roll = 4

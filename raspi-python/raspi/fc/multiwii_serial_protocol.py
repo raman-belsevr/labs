@@ -1,5 +1,6 @@
 import struct		# for decoding data strings
 from raspi.fc import communication
+from raspi.fc.communication import FlightControl
 
 
 class MultiwiiSerialProtocol(communication.AbstractCommunicationProtocol):
@@ -79,3 +80,13 @@ class MultiwiiSerialProtocol(communication.AbstractCommunicationProtocol):
             'MSP_IS_SERIAL': 211,
             'MSP_DEBUG': 254,
         }
+
+    def build_rc_signal(self, flight_control, delta):
+        if flight_control == FlightControl.aileron:
+            return delta
+        if flight_control == FlightControl.thrust:
+            return delta
+        if flight_control == FlightControl.yaw:
+            return delta
+        if flight_control == FlightControl.roll:
+            return delta

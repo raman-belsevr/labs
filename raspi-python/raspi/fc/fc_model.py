@@ -3,6 +3,7 @@ import time
 import threading
 from raspi.fc import multiwii_serial_protocol
 from logging import Logging
+from raspi.fc.communication import FlightControl
 
 
 class FlightController:
@@ -100,7 +101,20 @@ class FlightController:
     def stop(self):
         self.started = False
 
-    def send_rc_data(self, rc_data):
+    def aileron(self, delta):
+        rc_data = self.protocol.build_rc_signal(FlightControl.aileron, delta)
+        self.rcData = rc_data
+
+    def thrust(self, delta):
+        rc_data = self.protocol.build_rc_signal(FlightControl.thrust, delta)
+        self.rcData = rc_data
+
+    def yaw(self, delta):
+        rc_data = self.protocol.build_rc_signal(FlightControl.yaw, delta)
+        self.rcData = rc_data
+
+    def roll(self, delta):
+        rc_data = self.protocol.build_rc_signal(FlightControl.roll, delta)
         self.rcData = rc_data
 
     def loop(self):
