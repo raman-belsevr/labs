@@ -1,30 +1,65 @@
+from abc import ABCMeta, abstractmethod
 from raspi.sensor import sensor_model
-from raspi.sensor import distance_sensor
-from raspi.sensor import camera_sensor
 from raspi.sensor import acceleration_sensor
 from raspi.sensor import battery_sensor
 from raspi.sensor import waypoint_sensor
+from raspi.fc import fc_model
+from drone import util
 
 
-# actuate sensors
-class DroneSystem:
+class AbstractDroneSystem(metaclass=ABCMeta):
 
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
+
+    @abstractmethod
+    def aileron(self, delta):
+        pass
+
+    def thrust(self, delta):
+        pass
+
+    def yaw(self, delta):
+        pass
+
+    def roll(self, delta):
+        pass
+
+
+class DroneSystem (AbstractDroneSystem):
+
+    def roll(self, delta):
+        self.flight_controller.send_rc_data(delta)
+
+    def aileron(self, delta):
+        self.flight_controller.send_rc_data(delta)
+
+    def yaw(self, delta):
+        self.flight_controller.send_rc_data(delta)
+
+    def thrust(self, delta):
+        self.flight_controller.send_rc_data(delta)
+
+    def __init__(self, name):
+        super(DroneSystem, self).__init__(name)
+
+        # initialize flight controller
+        self.flight_controller = fc_model.FlightController("spf3", "usb_port")
 
         # initialize battery sensor
-        self.battery_sensor = battery_sensor.BatterySensor(DroneSystem.sensor_id(Sensor.battery, ""))
+        self.battery_sensor = battery_sensor.BatterySensor(util.sensor_id(Sensor.battery, ""))
 
         # initialize distance sensors
-        self.distance_sensor_front = DroneSystem.distance_sensor(Directions.front)
-        self.distance_sensor_rear = DroneSystem.distance_sensor(Directions.rear)
-        self.distance_sensor_left = DroneSystem.distance_sensor(Directions.left)
-        self.distance_sensor_right = DroneSystem.distance_sensor(Directions.right)
-        self.distance_sensor_up = DroneSystem.distance_sensor(Directions.up)
+        self.distance_sensor_front = util.distance_sensor(Directions.front)
+        self.distance_sensor_rear = util.distance_sensor(Directions.rear)
+        self.distance_sensor_left = util.distance_sensor(Directions.left)
+        self.distance_sensor_right = util.distance_sensor(Directions.right)
+        self.distance_sensor_up = util.distance_sensor(Directions.up)
         self.distance_sensor_down = sensor_model.DistanceSensor(Directions.down)
 
         # initialize front camera
-        self.front_left_camera = camera_sensor(Directions.front_left)
-        self.front_right_camera = camera_sensor(Directions.front_right)
+        self.front_left_camera = util.camera_sensor(Directions.front_left)
+        self.front_right_camera = util.camera_sensor(Directions.front_right)
 
         # initialize acceleration sensor
         self.acceleration_sensor = acceleration_sensor.AccelerationSensor()
@@ -41,14 +76,6 @@ class DroneSystem:
             self.distance_sensor_down.sensor_id: self.distance_sensor_down,
         }
 
-    @staticmethod
-    def sensor_id(sensor, direction):
-        sensor + "_" + direction
-
-    @staticmethod
-    def distance_sensor(direction):
-        return distance_sensor.UltraSonicDistanceSensor(DroneSystem.sensor_id(Sensor.distance, direction))
-
     def distance_vector(self, include = list()):
         if include.count > 0:
             qualified_include = map(lambda sensor_id: Sensor.distance + "_" + sensor_id , include)
@@ -62,10 +89,6 @@ class DroneSystem:
     def accln_vector(self):
         return AcclnVector.build(self.acceleration_sensor.get_reading())
 
-
-    @staticmethod
-    def camera_sensor(direction):
-        return camera_sensor.CameraSensor(DroneSystem.sensor_id(Sensor.camera, direction))
 
     def distance(self, direction):
         sensor_id = DroneSystem.sensor_id(Sensor.distance, direction)
@@ -87,7 +110,6 @@ class DroneSystem:
         accln_vector = self.accln_vector()
         way_point = self.waypoint_sensor()
         return DroneState(distance_vector, accln_vector, way_point)
-
 
 
 class Sensor:
