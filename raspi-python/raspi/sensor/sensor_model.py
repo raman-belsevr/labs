@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 import datetime
-import uuid
 
 
 class AbstractSensor (metaclass=ABCMeta):
