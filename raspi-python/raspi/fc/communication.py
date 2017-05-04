@@ -66,12 +66,4 @@ class FlightControlDelta:
         return list(self.delta_aileron, self.delta_elevator, self.delta_rudder, self.delta_thrust)
 
     def apply_to(self, existing_control_state):
-        existing_control_state.change_aileron + self.delta_aileron,
-        existing_control_state.change_elevator + self.delta_elevator,
-        existing_control_state.change_rudder + self.delta_rudder,
-        existing_control_state.thrust + self.delta_thrust
-        return existing_control_state
-
-    def change_thrust(self, delta):
-        self.delta_thrust += delta
-
+        existing_control_state.apply(self)
