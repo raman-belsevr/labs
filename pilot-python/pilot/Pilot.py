@@ -2,7 +2,7 @@ from pilot import Scheduler
 from logging import Logging
 from drone.drone_system import DroneSystem
 from pilot.Model import FlightState
-
+from pilot.flight_sequences import climb_hover_descent_grounded
 
 class Pilot:
 
@@ -19,6 +19,9 @@ class Pilot:
 
     def status(self):
         return self.drone.get_status()
+
+    def execute_flight_sequence(self):
+        sequence = climb_hover_descent_grounded()
 
     def fly(self, data):
         # provide 100 as delta thrust
