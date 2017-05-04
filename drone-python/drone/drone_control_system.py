@@ -11,21 +11,26 @@ from drone.drone_model import DistanceVector
 from drone.drone_model import AcclnVector
 from drone.drone_model import DroneState
 from drone.drone_model import DroneStatus
+from raspi.fc.fc_model import FlightControlState
 
 
 class DroneControlSystem(AbstractDroneControlSystem):
 
-    def roll(self, delta):
-        self.flight_controller.aileron(delta)
+    def change_aileron(self, delta):
+        self.flight_controller.change_aileron(delta)
 
-    def aileron(self, delta):
+    def change_elevator(self, delta):
+        self.flight_controller.change_elevator(delta)
+
+    def change_rudder(self, delta):
+        self.flight_controller.change_rudder(delta)
+
+    def change_thrust(self, delta):
+        self.set_flight_control_delta()
         self.flight_controller.thrust(delta)
 
-    def yaw(self, delta):
-        self.flight_controller.yaw(delta)
-
-    def thrust(self, delta):
-        self.flight_controller.roll(delta)
+    def set_flight_control(self, aileron, elevator, rudder, thrust):
+        self.flight_controller.set_flight_control_state(FlightControlState(aileron, elevator, rudder, thrust))
 
     def __init__(self, name):
         super(DroneControlSystem, self).__init__(name)
@@ -62,7 +67,8 @@ class DroneControlSystem(AbstractDroneControlSystem):
             self.distance_sensor_up.sensor_id: self.distance_sensor_up,
             self.distance_sensor_down.sensor_id: self.distance_sensor_down,
             self.front_left_camera.sensor_id: self.front_left_camera,
-            self.front_right_camera.sensor_id: self.front_right_camera
+            self.front_right_camera.sensor_id: self.front_right_camera,
+            self.waypoint_sensor.sensor_id: self.waypoint_sensor
         }
 
     @staticmethod

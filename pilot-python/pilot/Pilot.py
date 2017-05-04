@@ -22,28 +22,31 @@ class Pilot:
 
     def fly(self, data):
         # provide 100 as delta thrust
-        self.drone.control_system.thrust(100)
+        self.drone.control_system.change_thrust(100)
 
-    def climb(self, delta):
-        self.drone.control_system.thrust(delta)
+    def climb(self):
+        self.drone.control_system.change_thrust(100)
 
     def descent(self, delta):
-        self.drone.control_system.thrust(delta)
+        self.drone.control_system.change_thrust(-100)
 
     def cruise(self, speed):
         # form a mix of commands to control system
         pass
 
     def steer_left(self, delta):
+        self.drone.control_system.change_aileron(-delta)
         # form a mix of commands to control system
         pass
 
     def steer_right(self, delta):
         # form a mix of commands to control system
+        self.drone.control_system.change_aileron(delta)
         pass
 
     def hover(self):
         # form a mix of commands to control system
+        self.drone.control_system.set_flight_control(1500, 1500, 1500, 1500)
         pass
 
     def land(self, data):
