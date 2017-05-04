@@ -21,19 +21,19 @@ class AbstractDroneControlSystem(metaclass=ABCMeta):
         self.name = name
 
     @abstractmethod
-    def aileron(self, delta):
+    def change_aileron(self, delta):
         pass
 
     @abstractmethod
-    def thrust(self, delta):
+    def change_thrust(self, delta):
         pass
 
     @abstractmethod
-    def yaw(self, delta):
+    def change_rudder(self, delta):
         pass
 
     @abstractmethod
-    def roll(self, delta):
+    def change_elevator(self, delta):
         pass
 
 

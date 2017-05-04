@@ -3,7 +3,8 @@ import time
 import threading
 from raspi.fc import multiwii_serial_protocol
 from logging import Logging
-from raspi.fc.communication import FlightControl
+from raspi.fc.communication import FlightControlState
+from raspi.fc.communication import FlightControlDelta
 
 
 class FlightController:
@@ -72,7 +73,8 @@ class FlightController:
         self.flytime = 0
         self.numOfValues = 0
         self.precision = 3
-        self.rcData = [1500, 1500, 1500, 1500]  # order -> roll, pitch, yaw, throttle
+        self.control_state = FlightControlState(1500, 1500, 1500, 1500) # order -> roll(A), pitch(E), yaw(R), throttle(T)
+        self.control_state_delta = FlightControlDelta(0, 0, 0, 0)
 
         self.loopThread = threading.Thread(target=self.loop)
         if self.ser.isOpen():
@@ -101,27 +103,35 @@ class FlightController:
     def stop(self):
         self.started = False
 
-    def aileron(self, delta):
-        rc_data = self.protocol.build_rc_signal(FlightControl.aileron, delta)
-        self.rcData = rc_data
+    def change_aileron(self, delta):
+        self.control_state_delta.delta_aileron = delta
 
-    def thrust(self, delta):
-        rc_data = self.protocol.build_rc_signal(FlightControl.thrust, delta)
-        self.rcData = rc_data
+    def change_elevator(self, delta):
+        self.control_state_delta.delta_elevator = delta
 
-    def yaw(self, delta):
-        rc_data = self.protocol.build_rc_signal(FlightControl.yaw, delta)
-        self.rcData = rc_data
+    def change_rudder(self, delta):
+        self.control_state_delta.delta_rudder = delta
 
-    def roll(self, delta):
-        rc_data = self.protocol.build_rc_signal(FlightControl.roll, delta)
-        self.rcData = rc_data
+    def change_thrust(self, delta):
+        self.control_state_delta.delta_thrust = delta
+
+    def set_flight_control_state(self, control_state):
+        self.control_state = control_state
+
+    def set_flight_control_state(self, aileron, elevator, rudder, thrust):
+        self.control_state = FlightControlState(aileron, elevator, rudder, thrust)
+
+    def set_flight_control_delta(self, control_state_delta):
+        self.control_state_delta = control_state_delta
 
     def loop(self):
         try:
             while self.started:
                 if self.SET_RC:
-                    self.protocol.send_rc_data(8, self.rcData)
+                    # apply flight control delta to existing state and
+                    # send modified flight control state (A,E,T,R) to flight controller
+                    self.control_state.apply(self.control_state_delta)
+                    self.protocol.send_rc_data(8, self.control_state)
                     time.sleep(self.timeMSP)
             self.ser.close()
         except Exception as e:
