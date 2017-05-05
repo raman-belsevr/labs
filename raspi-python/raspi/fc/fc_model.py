@@ -5,6 +5,9 @@ from raspi.fc import multiwii_serial_protocol
 from logging import Logging
 from raspi.fc.communication import FlightControlState
 from raspi.fc.communication import FlightControlDelta
+from raspi.fc.flight_state_machine import FlightSequenceIterator
+from raspi.fc.flight_sequences import grounded_sequence
+from raspi.fc.flight_sequences import hover_sequence
 
 
 class FlightController:
@@ -17,6 +20,7 @@ class FlightController:
 
         self.name = name     # Name of the flight controller hardware chip
         self.started = True  # Indicating whether flight controller is operational or not
+        self.reset_flight_sequence = False
 
         self.ATT = 0      # Ask the attitude of the multicopter
         self.ATT = 0      # Ask the altitude of the multicopter
@@ -76,6 +80,12 @@ class FlightController:
         self.control_state = FlightControlState(1500, 1500, 1500, 1500) # order -> roll(A), pitch(E), yaw(R), throttle(T)
         self.control_state_delta = FlightControlDelta(0, 0, 0, 0)
 
+        #######################################
+        # Initialize Grounded Flight Sequence #
+        #######################################
+        self.flight_sequence = grounded_sequence()
+        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
+
         self.loopThread = threading.Thread(target=self.loop)
         if self.ser.isOpen():
             print("Wait 5 sec for calibrate the communication protocol")
@@ -102,6 +112,14 @@ class FlightController:
 
     def stop(self):
         self.started = False
+
+    def load_flight_sequence(self, new_sequence):
+        self.flight_sequence = new_sequence
+        self.reset_flight_sequence = True
+
+    def abort_flight_sequence(self):
+        self.flight_sequence = hover_sequence()
+        self.reset_flight_sequence = True
 
     def change_aileron(self, delta):
         self.control_state_delta.delta_aileron = delta
@@ -130,6 +148,12 @@ class FlightController:
                 if self.SET_RC:
                     # apply flight control delta to existing state and
                     # send modified flight control state (A,E,T,R) to flight controller
+                    if self.reset_flight_sequence is True:
+                        # reload new flight sequence
+                        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
+                        self.reset_flight_sequence = False
+
+                    self.control_state_delta = self.flight_sequence_iterator.__next__()
                     self.control_state.apply(self.control_state_delta)
                     self.protocol.send_rc_data(8, self.control_state)
                     time.sleep(self.timeMSP)

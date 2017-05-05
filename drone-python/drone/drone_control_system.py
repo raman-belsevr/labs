@@ -1,20 +1,27 @@
 from drone.drone_model import AbstractDroneControlSystem
-from raspi.sensor.distance_sensor import UltraSonicDistanceSensor
-from raspi.sensor.camera_sensor import CameraSensor
-from drone.drone_model import Directions
-from raspi.sensor.battery_sensor import BatterySensor
-from raspi.fc.fc_model import FlightController
-from raspi.sensor.acceleration_sensor import AccelerationSensor
-from raspi.sensor.waypoint_sensor import WaypointSensor
-from drone.drone_model import Sensor
-from drone.drone_model import DistanceVector
 from drone.drone_model import AcclnVector
+from drone.drone_model import Directions
+from drone.drone_model import DistanceVector
 from drone.drone_model import DroneState
 from drone.drone_model import DroneStatus
+from drone.drone_model import Sensor
 from raspi.fc.fc_model import FlightControlState
+from raspi.fc.fc_model import FlightController
+from raspi.fc.flight_state_machine import FlightSequenceIterator
+from raspi.sensor.acceleration_sensor import AccelerationSensor
+from raspi.sensor.battery_sensor import BatterySensor
+from raspi.sensor.camera_sensor import CameraSensor
+from raspi.sensor.distance_sensor import UltraSonicDistanceSensor
+from raspi.sensor.waypoint_sensor import WaypointSensor
 
 
 class DroneControlSystem(AbstractDroneControlSystem):
+
+    def load_flight_sequence(self, flight_sequence):
+        self.flight_controller.load_flight_sequence(flight_sequence)
+
+    def abort_flight_sequence(self):
+        self.flight_controller.reset_flight_sequence
 
     def change_aileron(self, delta):
         self.flight_controller.change_aileron(delta)
@@ -34,6 +41,10 @@ class DroneControlSystem(AbstractDroneControlSystem):
 
     def __init__(self, name):
         super(DroneControlSystem, self).__init__(name)
+
+        # set empty flight sequence
+        self.flight_sequence = None
+        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
 
         # initialize flight controller
         self.flight_controller = FlightController("spf3", "usb_port")
