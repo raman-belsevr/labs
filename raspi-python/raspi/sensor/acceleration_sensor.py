@@ -1,5 +1,5 @@
 from raspi.sensor import sensor_model
-from mpu6050 import mpu6050
+#from mpu6050 import mpu6050
 
 
 class AccelerationSensor(sensor_model.AbstractSensor):
@@ -8,7 +8,7 @@ class AccelerationSensor(sensor_model.AbstractSensor):
     """
 
     def __init__(self, sensor_id):
-        self.sensor = mpu6050(0x68)
+        self.sensor = DummyAcclerationSensor() #mpu6050(0x68)
         super(AccelerationSensor, self).__init__(sensor_id)
 
     def get_ic(self):
@@ -29,3 +29,12 @@ class AccelerationSensor(sensor_model.AbstractSensor):
 
     def is_ok(self):
         return "true"
+
+
+class DummyAcclerationSensor:
+
+    def __init__(self):
+        pass
+
+    def get_accel_data(self, g):
+        return 0

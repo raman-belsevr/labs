@@ -1,6 +1,6 @@
 import sys
 from raspi.fc.flight_sequences import hover_sequence
-from drone.drone_syustem import DroneSystem
+from drone.drone_system import DroneSystem
 
 
 def main():

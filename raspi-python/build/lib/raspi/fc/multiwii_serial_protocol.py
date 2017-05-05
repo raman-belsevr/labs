@@ -1,6 +1,7 @@
 import struct		# for decoding data strings
 from raspi.fc import communication
-from raspi.fc.fc_model import FlightControlState
+from raspi.fc.communication import FlightControlState
+
 
 class MultiwiiSerialProtocol(communication.AbstractCommunicationProtocol):
 
