@@ -1,5 +1,7 @@
 *.pyc
+__pychache__
 build
+dist
 .idea
 *.iml
 project
