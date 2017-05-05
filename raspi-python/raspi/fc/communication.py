@@ -33,7 +33,7 @@ class FlightControlState:
         self.thrust = thrust
 
     def to_list(self):
-        return list(self.aileron, self.elevator, self.rudder, self.thrust)
+        return list({self.aileron, self.elevator, self.rudder, self.thrust})
 
     def change_aileron(self, delta):
         self.aileron += delta
@@ -63,7 +63,7 @@ class FlightControlDelta:
         self.delta_thrust = delta_thrust
 
     def to_list(self):
-        return list(self.delta_aileron, self.delta_elevator, self.delta_rudder, self.delta_thrust)
+        return list({self.delta_aileron, self.delta_elevator, self.delta_rudder, self.delta_thrust})
 
     def apply_to(self, existing_control_state):
         existing_control_state.apply(self)

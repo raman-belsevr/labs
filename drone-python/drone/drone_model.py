@@ -139,9 +139,46 @@ class DroneStatus:
     Represents the health of the drone, i.e. battery life remaining and
     working status of on-board sensors.
     """
-    def __init__(self):
-        self.battery = 100
-        self.front_distance_sensor = "ok"
-        self.rear_distance_sensor = "ok"
-        self.any_errors = "false"
+    def __init__(self, control_status, media_status):
+        self.control_status = control_status
+        self.media_status = media_status
+        self.all_ok = self.control_status.all_ok and self.media_status.all_ok
+
+
+class DroneControlSystemStatus:
+    """
+    Represents the health of the drone's control system, i.e. battery life remaining and
+    working status of on-board sensors.
+    """
+
+    def __init__(self, sensor_report, all_ok):
+        self.sensor_report = sensor_report
+        self.all_ok = all_ok
+
+
+class DroneMediaSystemStatus:
+    """
+    Represents the health of the drone's media system, i.e. camera, microphone etc.
+    """
+
+    def __init__(self, sensor_report, all_ok):
+        self.sensor_report = sensor_report
+        self.all_ok = all_ok
+
+
+class SensorReport:
+
+    def __init__(self, sensors):
+        self.report = dict()
+        for sensor in sensors:
+            self.report[sensor.sensor_id] = sensor.is_ok()
+
+    def __str__(self):
+        display_str = ''
+        for key in self.report:
+            display_str += key + ' -> ' + self.report[key]
+        return display_str
+
+    def get_not_working(self):
+        return dict((key, value) for key, value in self.report.iteritems() if value.is_ok is False)
 

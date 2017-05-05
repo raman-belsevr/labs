@@ -3,7 +3,7 @@ from drone.drone_model import AcclnVector
 from drone.drone_model import Directions
 from drone.drone_model import DistanceVector
 from drone.drone_model import DroneState
-from drone.drone_model import DroneStatus
+from drone.drone_model import DroneControlSystemStatus
 from drone.drone_model import Sensor
 from raspi.fc.fc_model import FlightControlState
 from raspi.fc.fc_model import FlightController
@@ -13,6 +13,7 @@ from raspi.sensor.battery_sensor import BatterySensor
 from raspi.sensor.camera_sensor import CameraSensor
 from raspi.sensor.distance_sensor import UltraSonicDistanceSensor
 from raspi.sensor.waypoint_sensor import WaypointSensor
+from drone.drone_model import SensorReport
 
 
 class DroneControlSystem(AbstractDroneControlSystem):
@@ -44,7 +45,7 @@ class DroneControlSystem(AbstractDroneControlSystem):
 
         # set empty flight sequence
         self.flight_sequence = None
-        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
+        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence, self)
 
         # initialize flight controller
         self.flight_controller = FlightController("spf3", "usb_port")
@@ -53,16 +54,12 @@ class DroneControlSystem(AbstractDroneControlSystem):
         self.battery_sensor = BatterySensor(self.sensor_id(Sensor.battery, ""))
 
         # initialize distance sensors
-        self.distance_sensor_front = self.distance_sensor(Directions.front)
+        self.distance_sensor_front = self.distance_sensor(direction=Directions.front)
         self.distance_sensor_rear = self.distance_sensor(Directions.rear)
         self.distance_sensor_left = self.distance_sensor(Directions.left)
         self.distance_sensor_right = self.distance_sensor(Directions.right)
         self.distance_sensor_up = self.distance_sensor(Directions.up)
         self.distance_sensor_down = self.distance_sensor(Directions.down)
-
-        # initialize front camera
-        self.front_left_camera = self.camera_sensor(Directions.front_left)
-        self.front_right_camera = self.camera_sensor(Directions.front_right)
 
         # initialize acceleration sensor
         self.acceleration_sensor = AccelerationSensor()
@@ -77,8 +74,6 @@ class DroneControlSystem(AbstractDroneControlSystem):
             self.distance_sensor_right.sensor_id: self.distance_sensor_right,
             self.distance_sensor_up.sensor_id: self.distance_sensor_up,
             self.distance_sensor_down.sensor_id: self.distance_sensor_down,
-            self.front_left_camera.sensor_id: self.front_left_camera,
-            self.front_right_camera.sensor_id: self.front_right_camera,
             self.waypoint_sensor.sensor_id: self.waypoint_sensor
         }
 
@@ -112,16 +107,20 @@ class DroneControlSystem(AbstractDroneControlSystem):
         sensor_id = self.sensor_id(Sensor.distance, direction)
         return self.sensor_switcher.get(sensor_id).get_reading()
 
-    def image(self, direction):
-        sensor_id = self.sensor_id(Sensor.camera, direction)
-        return self.sensor_switcher.get(sensor_id).get_reading()
-
     def acceleration(self):
         return self.acceleration_sensor.get_reading()
 
     def get_status(self):
         # all sensors ok?
-        return DroneStatus()
+        sensor_report = SensorReport(self.sensor_switcher.values())
+        all_ok = self.all_ok()
+        return DroneControlSystemStatus(sensor_report, all_ok)
+
+    def all_ok(self):
+        for key, value in self.report.iteritems():
+            if value.is_ok is False:
+                return False
+        return True
 
     def get_state(self):
         distance_vector = self.distance_vector(list())
