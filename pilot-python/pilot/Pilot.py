@@ -1,8 +1,9 @@
-from pilot import Scheduler
-from logging import Logging
 from drone.drone_system import DroneSystem
+from logging import Logging
+from pilot import Scheduler
 from pilot.Model import FlightState
-from pilot.flight_sequences import climb_hover_descent_grounded
+from raspi.fc.flight_sequences import climb_hover_descent_grounded
+
 
 class Pilot:
 
