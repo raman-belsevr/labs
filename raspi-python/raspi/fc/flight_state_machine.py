@@ -37,13 +37,13 @@ class FlightSequenceIterator:
     for a complete flight sequence, transparently hopping over individual
     stage boundaries
     """
-    def __init__(self, flight_sequence, drone_system):
+    def __init__(self, flight_sequence, drone_control_system):
         self.flight_sequence = flight_sequence
         self.stage_iterators = self.build_stage_iterators()
         self.stage_index = 0
         self.current_iterator = self.stage_iterators[self.stage_index]
         self.current_stage = self.flight_sequence.flight_stages[self.stage_index]
-        self.drone_system = drone_system
+        self.drone_control_system = drone_control_system
         self.n_stages = flight_sequence.flight_stages.count
         self.next_epoch = 1
 

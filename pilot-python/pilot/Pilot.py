@@ -1,18 +1,20 @@
 from drone.drone_system import DroneSystem
-from logging import Logging
 from pilot import Scheduler
 from pilot.Model import FlightState
 from raspi.fc.flight_sequences import climb_hover_descent_grounded
+from logging.Logging import get_logger
 
 
 class Pilot:
+    logger = get_logger(__name__)
 
     def __init__(self):
-        Logging.logger.info("initializing pilot")
+        Pilot.logger.info("initializing pilot...")
         self.drone = DroneSystem("my_drone")
         self.atc = None
         self.scheduler = Scheduler()
         self.flight_state = FlightState()
+        Pilot.logger.info("initialized pilot")
 
     @staticmethod
     def validate_state(state):

@@ -107,7 +107,7 @@ class FlightController:
         try:
             ser.open()
         except Exception as e:
-            Logging.logger.error("Unable to open serial port % " % str(e))
+            Logging.logger.error("Unable to open serial port %s" % str(e))
             exit()
 
     def stop(self):
