@@ -11,17 +11,17 @@ def climb_hover_descent_grounded():
     hover = FlightStage(HoverFlightState(), 10)
     descend = FlightStage(DescendFlightState(), 10)
     grounded = FlightStage(GroundedFlightState())
-    sequence = FlightSequence(list({climb, hover, descend, grounded}))
+    sequence = FlightSequence(list(climb, hover, descend, grounded))
     return sequence
 
 
 def hover_sequence():
     hover = FlightStage(HoverFlightState(), 10)
-    sequence = FlightSequence(list({hover}))
+    sequence = FlightSequence(list(hover))
     return sequence
 
 
 def grounded_sequence():
     grounded = FlightStage(GroundedFlightState(), 10)
-    sequence = FlightSequence(list({grounded}))
+    sequence = FlightSequence(list(grounded))
     return sequence

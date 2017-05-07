@@ -56,7 +56,7 @@ class FlightControlState:
 
 class FlightControlDelta:
 
-    def __init__(self, delta_aileron, delta_elevator, delta_rudder, delta_thrust):
+    def __init(self, delta_aileron, delta_elevator, delta_rudder, delta_thrust):
         self.delta_aileron = delta_aileron
         self.delta_elevator = delta_elevator
         self.delta_rudder = delta_rudder

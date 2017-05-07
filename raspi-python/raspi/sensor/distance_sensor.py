@@ -1,5 +1,5 @@
 from raspi.sensor import sensor_model
-#from gpiozero import DistanceSensor
+from gpiozero import DistanceSensor
 
 
 class UltraSonicDistanceSensor(sensor_model.AbstractSensor):
@@ -12,9 +12,8 @@ class UltraSonicDistanceSensor(sensor_model.AbstractSensor):
         return "true"
 
     def __init__(self, sensor_id, echo=17, trigger=4, threshold_distance=0.5, max_distance=2):
-        self.ultrasonic = DummyDistanceSensor(0)
-        #DistanceSensor(echo, trigger, threshold_distance, max_distance)
-        #DistanceSensor.__configure__()
+        self.ultrasonic = DistanceSensor(echo, trigger, threshold_distance, max_distance)
+        DistanceSensor.__configure__()
         super(UltraSonicDistanceSensor, self).__init__(sensor_id)
 
     def get_ic(self):
@@ -55,11 +54,6 @@ class UltraSonicDistanceSensor(sensor_model.AbstractSensor):
         """
         self.ultrasonic.when_out_of_range = f
 
-
-class DummyDistanceSensor:
-
-    def __init__(self, distance):
-        self.distance = distance
 
 
 

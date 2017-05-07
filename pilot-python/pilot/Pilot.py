@@ -1,8 +1,8 @@
 from drone.drone_system import DroneSystem
-from pilot import scheduler
-from pilot.pilot_model import FlightState
-from raspi.raspi_logging import get_logger
+from pilot import Scheduler
+from pilot.Model import FlightState
 from raspi.fc.flight_sequences import climb_hover_descent_grounded
+from logging.Logging import get_logger
 
 
 class Pilot:
@@ -12,7 +12,7 @@ class Pilot:
         Pilot.logger.info("initializing pilot...")
         self.drone = DroneSystem("my_drone")
         self.atc = None
-        self.scheduler = scheduler()
+        self.scheduler = Scheduler()
         self.flight_state = FlightState()
         Pilot.logger.info("initialized pilot")
 

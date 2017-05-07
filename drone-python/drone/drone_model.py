@@ -65,7 +65,6 @@ class Sensor:
     acceleration = "accln"
     camera = "camera"
     battery = "battery"
-    waypoint = "waypoint"
 
 
 class Directions:
