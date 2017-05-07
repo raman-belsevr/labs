@@ -2,6 +2,8 @@ from drone.drone_model import AbstractDroneMediaSystem
 from drone.drone_model import Directions
 from drone.drone_model import Sensor
 from drone.drone_model import DroneMediaSystemStatus
+from raspi.sensor.camera_sensor import CameraSensor
+from drone.util import Util
 
 
 class DroneMediaSystem(AbstractDroneMediaSystem):
@@ -29,6 +31,10 @@ class DroneMediaSystem(AbstractDroneMediaSystem):
             self.front_left_camera.sensor_id: self.front_left_camera,
             self.front_right_camera.sensor_id: self.front_right_camera
         }
+
+    @staticmethod
+    def camera_sensor(direction):
+        return CameraSensor(Util.sensor_id(Sensor.camera, direction))
 
     def get_status(self):
         # all sensors ok?

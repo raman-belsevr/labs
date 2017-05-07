@@ -14,6 +14,8 @@ from raspi.fc.flight_state_machine import FlightSequenceIterator
 
 class FlightController:
 
+    logger = raspi_logging.get_logger(__name__)
+
     def __init__(self, name, port):
 
         ########################################
@@ -109,8 +111,8 @@ class FlightController:
         try:
             ser.open()
         except Exception as e:
-            raspi_logging.logger.error("Unable to open serial port %s" % str(e))
-            exit()
+            self.logger.error("Unable to open serial port %s" % str(e))
+            #exit()
 
     def stop(self):
         self.started = False

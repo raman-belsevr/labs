@@ -14,6 +14,9 @@ from raspi.sensor.camera_sensor import CameraSensor
 from raspi.sensor.distance_sensor import UltraSonicDistanceSensor
 from raspi.sensor.waypoint_sensor import WaypointSensor
 from drone.drone_model import SensorReport
+from raspi.fc.flight_sequences import grounded_sequence
+from drone.drone_model import Sensor
+from drone.util import Util
 
 
 class DroneControlSystem(AbstractDroneControlSystem):
@@ -44,14 +47,15 @@ class DroneControlSystem(AbstractDroneControlSystem):
         super(DroneControlSystem, self).__init__(name)
 
         # set empty flight sequence
-        self.flight_sequence = None
-        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence, self)
+        self.flight_sequence = grounded_sequence()
+        print("calling iterator with %", self.flight_sequence)
+        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
 
         # initialize flight controller
         self.flight_controller = FlightController("spf3", "usb_port")
 
         # initialize battery sensor
-        self.battery_sensor = BatterySensor(self.sensor_id(Sensor.battery, ""))
+        self.battery_sensor = BatterySensor(Util.sensor_id(Sensor.battery, ""))
 
         # initialize distance sensors
         self.distance_sensor_front = self.distance_sensor(direction=Directions.front)
@@ -62,10 +66,10 @@ class DroneControlSystem(AbstractDroneControlSystem):
         self.distance_sensor_down = self.distance_sensor(Directions.down)
 
         # initialize acceleration sensor
-        self.acceleration_sensor = AccelerationSensor()
+        self.acceleration_sensor = self.acceleration_sensor()
 
         # waypoint sensor
-        self.waypoint_sensor = WaypointSensor()
+        self.waypoint_sensor = self.waypoint_sensor()
 
         self.sensor_switcher = {
             self.distance_sensor_front.sensor_id: self.distance_sensor_front,
@@ -78,12 +82,18 @@ class DroneControlSystem(AbstractDroneControlSystem):
         }
 
     @staticmethod
-    def distance_sensor(self, direction):
-        return UltraSonicDistanceSensor(self.sensor_id(self.Sensor.distance, direction))
+    def acceleration_sensor():
+        sensor_id = DroneControlSystem.sensor_id(Sensor.acceleration, Directions.all)
+        return WaypointSensor(sensor_id)
 
     @staticmethod
-    def camera_sensor(self, direction):
-        return CameraSensor(self.sensor_id(self.Sensor.camera, direction))
+    def waypoint_sensor():
+        sensor_id = DroneControlSystem.sensor_id(Sensor.waypoint, Directions.all)
+        return AccelerationSensor(sensor_id)
+
+    @staticmethod
+    def distance_sensor(direction):
+        return UltraSonicDistanceSensor(DroneControlSystem.sensor_id(Sensor.distance, direction))
 
     @staticmethod
     def sensor_id(sensor, direction):
