@@ -1,6 +1,6 @@
 import sys
-from pilot.pilot import Pilot
 from raspi.fc.flight_sequences import hover_sequence
+from pilot.pilot_model import Pilot
 
 
 def main():
