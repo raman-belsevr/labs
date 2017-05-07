@@ -4,7 +4,10 @@ from raspi.sensor import camera_sensor
 from raspi.sensor.distance_sensor import UltraSonicDistanceSensor
 
 
-@staticmethod
 class Util:
+
+    @staticmethod
     def sensor_id(sensor, direction):
-        return sensor + "_" + direction
+        sensor + "_" + direction
+
+
