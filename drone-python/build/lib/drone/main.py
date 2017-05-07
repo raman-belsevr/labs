@@ -5,7 +5,7 @@ from drone.drone_system import DroneSystem
 
 def main():
     """Main entry point to the pilot system"""
-    drone = DroneSystem()
+    drone = DroneSystem("my_drone")
     flight_sequence = hover_sequence()
 
 if __name__ == '__main__':
