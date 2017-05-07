@@ -18,6 +18,9 @@ class AbstractFlightState(metaclass=ABCMeta):
     def __init__(self, name):
         self.name = name
 
+    def __str__(self):
+        return self.name
+
     @abstractmethod
     def initial_control_state(self):
         pass
@@ -30,6 +33,9 @@ class FlightSequence:
 
     def __init__(self, flight_stages):
         self.flight_stages = flight_stages
+
+    def __str__(self):
+        return '\n'.join([str(stage) for stage in self.flight_stages])
 
 
 class FlightSequenceIterator:
@@ -74,10 +80,13 @@ class FlightSequenceIterator:
 
 class FlightStage:
 
-    def __init__(self, flight_state, duration, exit_condition = None):
+    def __init__(self, flight_state, duration, exit_condition=None):
         self.flight_state = flight_state
         self.duration = duration
         self.exit_condition = exit_condition
+
+    def __str__(self):
+        return "state[{}] duration[{}] exit_on[{}]".format(self.flight_state, self.duration, self.exit_condition)
 
 
 class FlightStageIterator:

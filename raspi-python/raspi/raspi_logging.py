@@ -1,5 +1,6 @@
 import logging
 
+
 def get_logger(name):
 
     logger = logging.getLogger("belsevr." + name)
@@ -14,4 +15,5 @@ def get_logger(name):
 
     # add the handlers to the logger
     logger.addHandler(handler)
-    return logging.getLogger(__name__)
+
+    return logger

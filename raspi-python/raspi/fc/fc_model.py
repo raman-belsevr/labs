@@ -108,11 +108,13 @@ class FlightController:
         ser.dsrdtr = False
         ser.writeTimeout = 2
 
+        """
         try:
             ser.open()
         except Exception as e:
             self.logger.error("Unable to open serial port %s" % str(e))
             #exit()
+        """
 
     def stop(self):
         self.started = False

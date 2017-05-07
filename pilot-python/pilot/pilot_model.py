@@ -8,11 +8,10 @@ class Pilot:
     logger = get_logger(__name__)
 
     def __init__(self):
-        Pilot.logger.info("initializing pilot...")
         self.drone = DroneSystem("my_drone")
         self.atc = None
         self.flight_state = FlightState()
-        Pilot.logger.info("initialized pilot")
+        self.logger.info("initialized pilot")
 
     @staticmethod
     def validate_state(state):
@@ -23,6 +22,7 @@ class Pilot:
 
     def execute_flight_sequence(self, flight_sequence):
         self.logger.info("executing flight sequence %s", flight_sequence)
+        self.drone.control_system.load_flight_sequence(flight_sequence)
 
     def fly(self, data):
         # provide 100 as delta thrust
