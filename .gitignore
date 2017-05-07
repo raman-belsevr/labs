@@ -1,7 +1,10 @@
 *.pyc
+__pychache__
 build
+dist
 .idea
 *.iml
 project
 target
 *.class
+build

@@ -1,7 +1,7 @@
-from drone.drone_model import AbstractDroneSystem
 from drone.drone_control_system import DroneControlSystem
 from drone.drone_media_system import DroneMediaSystem
-from logging.Logging import get_logger
+from drone.drone_model import AbstractDroneSystem
+from raspi.raspi_logging import get_logger
 
 
 class DroneSystem(AbstractDroneSystem):

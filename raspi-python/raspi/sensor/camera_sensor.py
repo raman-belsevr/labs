@@ -14,7 +14,6 @@ class CameraSensor(sensor_model.AbstractSensor):
         self.camera = picamera.PiCamera()
         super(CameraSensor, self).__init__(sensor_id)
 
-
     def get_ic(self):
         return "camera"
 

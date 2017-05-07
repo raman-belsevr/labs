@@ -2,10 +2,12 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 from raspi.fc.communication import FlightControlState
 from raspi.fc.communication import FlightControlDelta
-from logging import Logging
+from raspi.raspi_logging import get_logger
 
 
 class AbstractFlightState(metaclass=ABCMeta):
+
+    logger = get_logger(__name__)
 
     """
     A flight state is expressed as a combination of
@@ -37,13 +39,12 @@ class FlightSequenceIterator:
     for a complete flight sequence, transparently hopping over individual
     stage boundaries
     """
-    def __init__(self, flight_sequence, drone_control_system):
+    def __init__(self, flight_sequence):
         self.flight_sequence = flight_sequence
         self.stage_iterators = self.build_stage_iterators()
         self.stage_index = 0
         self.current_iterator = self.stage_iterators[self.stage_index]
         self.current_stage = self.flight_sequence.flight_stages[self.stage_index]
-        self.drone_control_system = drone_control_system
         self.n_stages = flight_sequence.flight_stages.count
         self.next_epoch = 1
 
@@ -57,7 +58,6 @@ class FlightSequenceIterator:
             else:
                 value = self.current_iterator.__next__()
         except StopIteration:
-            Logging.logger.info("")
             self.stage_index += 1
             if self.stage_index == self.n_stages:
                 raise StopIteration
@@ -67,13 +67,14 @@ class FlightSequenceIterator:
         return value
 
     def build_stage_iterators(self):
-        stage_iterators = [ FlightStageIterator(stage) for stage in self.flight_sequence.flight_stages]
+        print(" flight sequence is %s", self.flight_sequence)
+        stage_iterators = [FlightStageIterator(stage) for stage in self.flight_sequence.flight_stages]
         return stage_iterators
 
 
 class FlightStage:
 
-    def __init__(self, flight_state, duration, exit_condition):
+    def __init__(self, flight_state, duration, exit_condition = None):
         self.flight_state = flight_state
         self.duration = duration
         self.exit_condition = exit_condition
@@ -126,7 +127,7 @@ class FlightState(Enum):
 class HoverFlightState(AbstractFlightState):
 
     def __init__(self):
-        super(self, HoverFlightState).__init__("hover")
+        super().__init__("hover")
         self.delta = FlightControlDelta(0, 0, 0, 0)
 
     def initial_control_state(self):
@@ -139,7 +140,7 @@ class HoverFlightState(AbstractFlightState):
 class ClimbFlightState(AbstractFlightState):
 
     def __init__(self, rate = 100):
-        super(self, HoverFlightState).__init__("climb")
+        super(ClimbFlightState, self).__init__("climb")
         self.rate = rate
 
     def initial_control_state(self):
@@ -152,7 +153,7 @@ class ClimbFlightState(AbstractFlightState):
 class DescendFlightState(AbstractFlightState):
 
     def __init__(self, rate = 100):
-        super(self, HoverFlightState).__init__("descent")
+        super(DescendFlightState, self).__init__("descent")
         self.rate = rate
 
     def initial_control_state(self):
@@ -165,7 +166,7 @@ class DescendFlightState(AbstractFlightState):
 class CruiseForwardFlightState(AbstractFlightState):
 
     def __init__(self, rate = 100):
-        super(self, HoverFlightState).__init__("cruise_forward")
+        super(CruiseForwardFlightState, self).__init__("cruise_forward")
         self.rate = rate
 
     def initial_control_state(self):
@@ -178,7 +179,7 @@ class CruiseForwardFlightState(AbstractFlightState):
 class CruiseBackwardFlightState(AbstractFlightState):
 
     def __init__(self, rate = 100):
-        super(self, HoverFlightState).__init__("cruise_backward")
+        super(CruiseBackwardFlightState, self).__init__("cruise_backward")
         self.rate = rate
 
     def initial_control_state(self):
@@ -191,7 +192,7 @@ class CruiseBackwardFlightState(AbstractFlightState):
 class GroundedFlightState(AbstractFlightState):
 
     def __init__(self):
-        super(self, HoverFlightState).__init__("grounded")
+        super(GroundedFlightState, self).__init__("grounded")
 
     def initial_control_state(self):
         return FlightControlState(1500, 1500, 1500, 0)

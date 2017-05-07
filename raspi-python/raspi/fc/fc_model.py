@@ -1,16 +1,20 @@
-import serial
-import time
 import threading
+import time
+
+import serial
+
+from raspi import raspi_logging
 from raspi.fc import multiwii_serial_protocol
-from logging import Logging
-from raspi.fc.communication import FlightControlState
 from raspi.fc.communication import FlightControlDelta
-from raspi.fc.flight_state_machine import FlightSequenceIterator
+from raspi.fc.communication import FlightControlState
 from raspi.fc.flight_sequences import grounded_sequence
 from raspi.fc.flight_sequences import hover_sequence
+from raspi.fc.flight_state_machine import FlightSequenceIterator
 
 
 class FlightController:
+
+    logger = raspi_logging.get_logger(__name__)
 
     def __init__(self, name, port):
 
@@ -107,8 +111,8 @@ class FlightController:
         try:
             ser.open()
         except Exception as e:
-            Logging.logger.error("Unable to open serial port %s" % str(e))
-            exit()
+            self.logger.error("Unable to open serial port %s" % str(e))
+            #exit()
 
     def stop(self):
         self.started = False
@@ -159,4 +163,4 @@ class FlightController:
                     time.sleep(self.timeMSP)
             self.ser.close()
         except Exception as e:
-            Logging.logger.error("Exception in operating flight controller loop")
+            raspi_logging.logger.error("Exception in operating flight controller loop")

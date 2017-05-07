@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
-from pilot import Pilot
+from pilot import pilot
 
 app = Flask(__name__)
 api = Api(app)
@@ -16,7 +16,7 @@ class PilotAction(Resource):
             "land": self.handle_land(),
             "off": self.handle_off()
         }
-        self.pilot = Pilot()
+        self.pilot = pilot()
 
     def handle_init(self, data):
         self.pilot.start()
