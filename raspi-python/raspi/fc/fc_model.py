@@ -10,11 +10,12 @@ from raspi.fc.communication import FlightControlState
 from raspi.fc.flight_sequences import grounded_sequence
 from raspi.fc.flight_sequences import hover_sequence
 from raspi.fc.flight_state_machine import FlightSequenceIterator
+from raspi.raspi_logging import get_logger
 
 
 class FlightController:
 
-    logger = raspi_logging.get_logger(__name__)
+    logger = get_logger(__name__)
 
     def __init__(self, name, port):
 
@@ -91,6 +92,10 @@ class FlightController:
         self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
 
         self.loopThread = threading.Thread(target=self.loop)
+        self.logger.info("Initialized flight controller %s", name)
+        time.sleep(5)
+        self.loopThread.start()
+
         if self.ser.isOpen():
             print("Wait 5 sec for calibrate the communication protocol")
             time.sleep(5)
@@ -108,11 +113,13 @@ class FlightController:
         ser.dsrdtr = False
         ser.writeTimeout = 2
 
+        """
         try:
             ser.open()
         except Exception as e:
             self.logger.error("Unable to open serial port %s" % str(e))
             #exit()
+        """
 
     def stop(self):
         self.started = False
@@ -156,11 +163,12 @@ class FlightController:
                         # reload new flight sequence
                         self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
                         self.reset_flight_sequence = False
-
-                    self.control_state_delta = self.flight_sequence_iterator.__next__()
+                    self.logger.info("Obtaining Next flight control instruction")
+                    self.control_state_delta = self.flight_sequence_iterator.__next__(self.control_state)
+                    self.logger.info("Obtained next flight control instruction %s", self.control_state_delta)
                     self.control_state.apply(self.control_state_delta)
                     self.protocol.send_rc_data(8, self.control_state)
                     time.sleep(self.timeMSP)
             self.ser.close()
         except Exception as e:
-            raspi_logging.logger.error("Exception in operating flight controller loop")
+            self.logger.error("Exception in operating flight controller loop %s", str(e))
