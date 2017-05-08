@@ -25,7 +25,7 @@ class DroneControlSystem(AbstractDroneControlSystem):
         self.flight_controller.load_flight_sequence(flight_sequence)
 
     def abort_flight_sequence(self):
-        self.flight_controller.reset_flight_sequence
+        self.flight_controller.reset_flight_sequence = True
 
     def change_aileron(self, delta):
         self.flight_controller.change_aileron(delta)

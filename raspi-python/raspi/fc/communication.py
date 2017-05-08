@@ -53,6 +53,12 @@ class FlightControlState:
         self.rudder += control_state_delta.delta_rudder
         self.thrust += control_state_delta.delta_thrust
 
+    def __str__(self):
+        return "Flight Control State A [{}] E[{}] R[{}] T[}]".format(self.aileron,
+                                                                     self.elevator,
+                                                                     self.rudder,
+                                                                     self.thrust)
+
 
 class FlightControlDelta:
 
@@ -67,3 +73,9 @@ class FlightControlDelta:
 
     def apply_to(self, existing_control_state):
         existing_control_state.apply(self)
+
+    def __str__(self):
+        return "A [{}], E [{}], R [{}], T[{}]".format(self.delta_aileron,
+                                                      self.delta_elevator,
+                                                      self.delta_rudder,
+                                                      self.delta_thrust)

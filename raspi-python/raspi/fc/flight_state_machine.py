@@ -40,6 +40,8 @@ class FlightSequence:
 
 class FlightSequenceIterator:
 
+    logger = get_logger(__name__)
+
     """
     Iterator over a flight sequence that provides control values (A, E, R, T)
     for a complete flight sequence, transparently hopping over individual
@@ -57,19 +59,27 @@ class FlightSequenceIterator:
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def __next__(self, existing_state):
+        self.logger.info("Inside __next__  n_stages [{}] epoch [{}]".format(self.n_stages, self.next_epoch))
         try:
-            if self.stage_index == 0 and self.next_epoch == 1:
-                value = self.current_iterator.begin_state_delta(self)
+            # 1st instruction of a stage
+            if self.next_epoch == 1:
+                self.logger.info("Computing begin state delta from existing state %s", existing_state)
+                value = self.current_iterator.begin_state_delta(existing_state)
             else:
-                value = self.current_iterator.__next__()
+                self.logger.info("Invoking next from iterator")
+                value = self.current_iterator.__next__(existing_state)
         except StopIteration:
+            self.logger.info("Done with flight state [{}]".format(self.stage_index))
             self.stage_index += 1
+            self.next_epoch = 1
+
             if self.stage_index == self.n_stages:
                 raise StopIteration
             else:
                 self.current_iterator = self.stage_iterators[self.stage_index]
-                value = self.current_iterator.begin_state_delta()
+                value = self.current_iterator.begin_state_delta(existing_state)
+        self.next_epoch += 1
         return value
 
     def build_stage_iterators(self):
@@ -95,6 +105,8 @@ class FlightStageIterator:
     to execute a stage in steps (epochs) with each step executing in 0.02 seconds.
     """
 
+    logger = get_logger(__name__)
+
     def __init__(self, flight_stage):
         self.next_epoch = 1
         self.max_epochs = flight_stage.duration/0.02
@@ -112,6 +124,7 @@ class FlightStageIterator:
             return self.current.flight_state.control_stage_delta
 
     def begin_state_delta(self, existing_state):
+        self.logger.info("Computing begin state delta with existing state %s", existing_state)
         desired_initial_state = self.flight_stage.flight_state.initial_control_state
         delta_aileron = desired_initial_state.aileron - existing_state.aileron
         delta_elevator = desired_initial_state.elevator - existing_state.elevator

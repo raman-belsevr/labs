@@ -17,4 +17,4 @@ class DroneSystem(AbstractDroneSystem):
     def __init__(self, name):
         self.control_system = DroneControlSystem(name)
         self.media_system = DroneMediaSystem(name)
-        DroneSystem.logger.info("initialized drone %s", name)
+        DroneSystem.logger.info("Initialized drone - name[%s]", name)

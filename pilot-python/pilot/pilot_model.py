@@ -11,7 +11,7 @@ class Pilot:
         self.drone = DroneSystem("my_drone")
         self.atc = None
         self.flight_state = FlightState()
-        self.logger.info("initialized pilot")
+        self.logger.info("Initialized pilot")
 
     @staticmethod
     def validate_state(state):
@@ -21,7 +21,7 @@ class Pilot:
         return self.drone.get_status()
 
     def execute_flight_sequence(self, flight_sequence):
-        self.logger.info("executing flight sequence %s", flight_sequence)
+        self.logger.info("Executing flight sequence %s", flight_sequence)
         self.drone.control_system.load_flight_sequence(flight_sequence)
 
     def fly(self, data):
