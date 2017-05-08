@@ -7,7 +7,7 @@ from drone.drone_model import DroneControlSystemStatus
 from drone.drone_model import Sensor
 from raspi.fc.fc_model import FlightControlState
 from raspi.fc.fc_model import FlightController
-from raspi.fc.flight_state_machine import FlightSequenceIterator
+from raspi.fc.flight_state_machine import FlightSequenceSteps
 from raspi.sensor.acceleration_sensor import AccelerationSensor
 from raspi.sensor.battery_sensor import BatterySensor
 from raspi.sensor.camera_sensor import CameraSensor
@@ -49,7 +49,7 @@ class DroneControlSystem(AbstractDroneControlSystem):
         # set empty flight sequence
         self.flight_sequence = grounded_sequence()
         print("calling iterator with %", self.flight_sequence)
-        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
+        self.flight_sequence_iterator = FlightSequenceSteps(self.flight_sequence)
 
         # initialize flight controller
         self.flight_controller = FlightController("spf3", "usb_port")

@@ -1,8 +1,17 @@
 import logging
 
+app_logger = None
+
 
 def get_logger(name):
+    global app_logger
+    if app_logger is None:
+        app_logger = build_logger(name)
+    else:
+    return app_logger
 
+
+def build_logger(name):
     logger = logging.getLogger("belsevr." + name)
     logger.setLevel(logging.INFO)
 
@@ -15,6 +24,7 @@ def get_logger(name):
     handler.setFormatter(formatter)
 
     # add the handlers to the logger
+    # print("built logger [{}]".format(name))
     logger.addHandler(handler)
 
     return logger
