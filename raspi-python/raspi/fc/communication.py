@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
+from raspi.raspi_logging import get_logger
 
 
 class AbstractCommunicationProtocol(metaclass=ABCMeta):
@@ -26,6 +27,8 @@ class FlightControl(Enum):
 
 class FlightControlState:
 
+    logger = get_logger(__name__)
+
     def __init__(self, aileron, elevator, rudder, thrust):
         self.aileron = aileron
         self.elevator = elevator
@@ -48,16 +51,17 @@ class FlightControlState:
         self.thrust += delta
 
     def apply(self, control_state_delta):
+        self.logger.info("Applying control state delta [{}] to [{}]", control_state_delta, self)
         self.aileron += control_state_delta.delta_aileron
         self.elevator += control_state_delta.delta_elevator
         self.rudder += control_state_delta.delta_rudder
         self.thrust += control_state_delta.delta_thrust
 
     def __str__(self):
-        return "Flight Control State A [{}] E[{}] R[{}] T[}]".format(self.aileron,
-                                                                     self.elevator,
-                                                                     self.rudder,
-                                                                     self.thrust)
+        return "Flight Control State A [{}] E[{}] R[{}] T[{}]".format(self.aileron,
+                                                                      self.elevator,
+                                                                      self.rudder,
+                                                                      self.thrust)
 
 
 class FlightControlDelta:
@@ -75,7 +79,7 @@ class FlightControlDelta:
         existing_control_state.apply(self)
 
     def __str__(self):
-        return "A [{}], E [{}], R [{}], T[{}]".format(self.delta_aileron,
-                                                      self.delta_elevator,
-                                                      self.delta_rudder,
-                                                      self.delta_thrust)
+        return "FlightControlDelta: A [{}], E [{}], R [{}], T[{}]".format(self.delta_aileron,
+                                                                          self.delta_elevator,
+                                                                          self.delta_rudder,
+                                                                          self.delta_thrust)

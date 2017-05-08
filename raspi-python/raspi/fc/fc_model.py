@@ -9,7 +9,7 @@ from raspi.fc.communication import FlightControlDelta
 from raspi.fc.communication import FlightControlState
 from raspi.fc.flight_sequences import grounded_sequence
 from raspi.fc.flight_sequences import hover_sequence
-from raspi.fc.flight_state_machine import FlightSequenceIterator
+from raspi.fc.flight_state_machine import FlightSequenceSteps
 from raspi.raspi_logging import get_logger
 
 
@@ -88,8 +88,8 @@ class FlightController:
         #######################################
         # Initialize Grounded Flight Sequence #
         #######################################
-        self.flight_sequence = grounded_sequence()
-        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
+        self.flight_sequence = None
+        self.flight_sequence_stepper = FlightSequenceSteps(self.flight_sequence, self)
 
         self.loopThread = threading.Thread(target=self.loop)
         self.logger.info("Initialized flight controller %s", name)
@@ -155,20 +155,26 @@ class FlightController:
 
     def loop(self):
         try:
+
             while self.started:
                 if self.SET_RC:
                     # apply flight control delta to existing state and
                     # send modified flight control state (A,E,T,R) to flight controller
                     if self.reset_flight_sequence is True:
                         # reload new flight sequence
-                        self.flight_sequence_iterator = FlightSequenceIterator(self.flight_sequence)
+                        self.logger.info("Reloading new flight sequence [{}]".format(self.flight_sequence))
+                        self.flight_sequence_stepper = FlightSequenceSteps(self.flight_sequence, self)
                         self.reset_flight_sequence = False
-                    self.logger.info("Obtaining Next flight control instruction")
-                    self.control_state_delta = self.flight_sequence_iterator.__next__(self.control_state)
-                    self.logger.info("Obtained next flight control instruction %s", self.control_state_delta)
-                    self.control_state.apply(self.control_state_delta)
-                    self.protocol.send_rc_data(8, self.control_state)
-                    time.sleep(self.timeMSP)
-            self.ser.close()
+
+                    self.control_state_delta = self.flight_sequence_stepper.next()
+                    if self.control_state_delta is None:
+                        self.logger.debug("Finished executing flight sequence [{}]".format(self.flight_sequence))
+                    else:
+                        self.control_state.apply(self.control_state_delta)
+                        self.logger.debug("Applied delta [{}] to state [{}]".format(self.control_state_delta, self.control_state))
+                        #self.protocol.send_rc_data(8, self.control_state)
+                        time.sleep(self.timeMSP)
+            self.logger.info("Closing connection with flight controller chip")
+            #self.ser.close()
         except Exception as e:
             self.logger.error("Exception in operating flight controller loop %s", str(e))

@@ -38,54 +38,47 @@ class FlightSequence:
         return '\n'.join([str(stage) for stage in self.flight_stages])
 
 
-class FlightSequenceIterator:
+class FlightSequenceSteps:
 
     logger = get_logger(__name__)
 
-    """
-    Iterator over a flight sequence that provides control values (A, E, R, T)
-    for a complete flight sequence, transparently hopping over individual
-    stage boundaries
-    """
-    def __init__(self, flight_sequence):
-        self.flight_sequence = flight_sequence
-        self.stage_iterators = self.build_stage_iterators()
-        self.stage_index = 0
-        self.current_iterator = self.stage_iterators[self.stage_index]
-        self.current_stage = self.flight_sequence.flight_stages[self.stage_index]
-        self.n_stages = flight_sequence.flight_stages.count
-        self.next_epoch = 1
+    def __init__(self, flight_sequence, flight_controller):
+        self.flight_controller = flight_controller
+        self.epoch = 0
 
-    def __iter__(self):
-        return self
+        if flight_sequence is None:
+            self.flight_sequence = None
+            self.max_epoch = 0
+            self.current_stage = None
+            self.stage_steppers = None
+        else:
+            self.flight_sequence = flight_sequence
+            self.max_epoch = len(self.flight_sequence.flight_stages)
+            self.stage_steppers = self.build_stage_steps()
+            self.current_stage = self.stage_steppers[self.epoch]
 
-    def __next__(self, existing_state):
-        self.logger.info("Inside __next__  n_stages [{}] epoch [{}]".format(self.n_stages, self.next_epoch))
-        try:
-            # 1st instruction of a stage
-            if self.next_epoch == 1:
-                self.logger.info("Computing begin state delta from existing state %s", existing_state)
-                value = self.current_iterator.begin_state_delta(existing_state)
+    def build_stage_steps(self):
+        if self.flight_sequence is None:
+            stage_steppers = list({})
+        else:
+            stage_steppers = [FlightStageSteps(stage, self.flight_controller) for stage in self.flight_sequence.flight_stages]
+        return stage_steppers
+
+    def next(self):
+        if self.epoch == self.max_epoch:
+            return None
+        else:
+            value = self.current_stage.next()
+            if value is None:
+                self.logger.info("Done with stage ([{}] of [{}])".format(self.epoch+1, self.max_epoch))
+                self.epoch += 1
+                if self.epoch == self.max_epoch:
+                    return None
+                else:
+                    self.current_stage = self.stage_steppers[self.epoch]
+                    return self.current_stage.next()
             else:
-                self.logger.info("Invoking next from iterator")
-                value = self.current_iterator.__next__(existing_state)
-        except StopIteration:
-            self.logger.info("Done with flight state [{}]".format(self.stage_index))
-            self.stage_index += 1
-            self.next_epoch = 1
-
-            if self.stage_index == self.n_stages:
-                raise StopIteration
-            else:
-                self.current_iterator = self.stage_iterators[self.stage_index]
-                value = self.current_iterator.begin_state_delta(existing_state)
-        self.next_epoch += 1
-        return value
-
-    def build_stage_iterators(self):
-        print(" flight sequence is %s", self.flight_sequence)
-        stage_iterators = [FlightStageIterator(stage) for stage in self.flight_sequence.flight_stages]
-        return stage_iterators
+                return value
 
 
 class FlightStage:
@@ -99,7 +92,7 @@ class FlightStage:
         return "state[{}] duration[{}] exit_on[{}]".format(self.flight_state, self.duration, self.exit_condition)
 
 
-class FlightStageIterator:
+class FlightStageSteps:
     """
     Iterator over a flight stage that provides the control values (A, E, R, T)
     to execute a stage in steps (epochs) with each step executing in 0.02 seconds.
@@ -107,25 +100,26 @@ class FlightStageIterator:
 
     logger = get_logger(__name__)
 
-    def __init__(self, flight_stage):
-        self.next_epoch = 1
-        self.max_epochs = flight_stage.duration/0.02
+    def __init__(self, flight_stage, flight_controller):
         self.flight_stage = flight_stage
-        self.current = self.flight_stage.flight_state
+        self.flight_controller = flight_controller
+        self.epoch = 0
+        self.max_epoch = flight_stage.duration/0.02
+        self.logger.info("Stage [{}] Max Epochs [{}]".format(self.flight_stage.flight_state.name, self.max_epoch))
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.next_epoch > self.max_epochs:
-            raise StopIteration
+    def next(self):
+        if self.epoch == self.max_epoch:
+            return None
+        elif self.epoch == 0:
+            self.epoch += 1
+            return self.begin_state_delta(self.flight_controller.control_state)
         else:
-            self.next_epoch += 1
-            return self.current.flight_state.control_stage_delta
+            self.epoch += 1
+            return self.flight_stage.flight_state.control_state_delta()
 
     def begin_state_delta(self, existing_state):
-        self.logger.info("Computing begin state delta with existing state %s", existing_state)
-        desired_initial_state = self.flight_stage.flight_state.initial_control_state
+        desired_initial_state = self.flight_stage.flight_state.initial_control_state()
+        self.logger.info("Begin stage [{}], transit from [{}] to [{}]".format(self.flight_stage.flight_state.name, existing_state, desired_initial_state))
         delta_aileron = desired_initial_state.aileron - existing_state.aileron
         delta_elevator = desired_initial_state.elevator - existing_state.elevator
         delta_rudder = desired_initial_state.rudder - existing_state.rudder

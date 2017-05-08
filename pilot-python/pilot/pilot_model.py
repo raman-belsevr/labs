@@ -1,5 +1,4 @@
 from enum import Enum
-from itertools import repeat
 from raspi.raspi_logging import get_logger
 from drone.drone_system import DroneSystem
 
@@ -10,7 +9,6 @@ class Pilot:
     def __init__(self):
         self.drone = DroneSystem("my_drone")
         self.atc = None
-        self.flight_state = FlightState()
         self.logger.info("Initialized pilot")
 
     @staticmethod
@@ -21,7 +19,7 @@ class Pilot:
         return self.drone.get_status()
 
     def execute_flight_sequence(self, flight_sequence):
-        self.logger.info("Executing flight sequence %s", flight_sequence)
+        self.logger.info("Executing flight sequence [{}]".format(flight_sequence))
         self.drone.control_system.load_flight_sequence(flight_sequence)
 
     def fly(self, data):
@@ -81,9 +79,3 @@ class FlightMode(Enum):
     landing = 5
 
 
-class FlightState:
-
-    def __init__(self):
-        self.distance_vector = list(repeat(Constants.unknown, 6))
-        self.accln_vector = list(repeat(Constants.unknown, 6))
-        self.mode = FlightMode.grounded
