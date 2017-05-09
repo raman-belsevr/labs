@@ -1,7 +1,7 @@
 import struct		# for decoding data strings
 from raspi.fc.communication import AbstractCommunicationProtocol
 from raspi.raspi_logging import get_logger
-
+from flask import Flask
 
 class MultiwiiSerialProtocol(AbstractCommunicationProtocol):
 
@@ -95,3 +95,15 @@ class LogOnlyProtocol(AbstractCommunicationProtocol):
 
     def send_rc_data(self, fcs):
         self.logger.info("A [{}], E [{}], R [{}], T [{}]".format(fcs.aileron, fcs.elevator, fcs.rudder, fcs.thrust))
+
+
+class VisualizeProtocol(AbstractCommunicationProtocol):
+
+    logger = get_logger(__name__)
+
+    def __init__(self):
+        super().__init__("visual simulator")
+
+    def send_rc_data(self, fcs):
+        self.logger.info("A [{}], E [{}], R [{}], T [{}]".format(fcs.aileron, fcs.elevator, fcs.rudder, fcs.thrust))
+
