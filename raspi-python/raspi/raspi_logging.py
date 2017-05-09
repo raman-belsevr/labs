@@ -7,8 +7,8 @@ def get_logger(name):
     global app_logger
     if app_logger is None:
         app_logger = build_logger(name)
-    else:
-        return app_logger
+
+    return app_logger
 
 
 def build_logger(name):

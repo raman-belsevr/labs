@@ -52,16 +52,28 @@ class FlightControlState:
 
     def apply(self, control_state_delta):
         self.logger.info("Applying control state delta [{}] to [{}]", control_state_delta, self)
-        self.aileron += control_state_delta.delta_aileron
-        self.elevator += control_state_delta.delta_elevator
-        self.rudder += control_state_delta.delta_rudder
-        self.thrust += control_state_delta.delta_thrust
+        self.aileron = self.range_check(self.aileron, control_state_delta.delta_aileron, 0, 2000)
+        self.elevator = self.range_check(self.elevator, control_state_delta.delta_elevator, 0, 2000)
+        self.rudder = self.range_check(self.rudder, control_state_delta.delta_rudder, 0, 2000)
+        self.thrust = self.range_check(self.thrust, control_state_delta.delta_thrust, 0, 2000)
 
     def __str__(self):
         return "Flight Control State A [{}] E[{}] R[{}] T[{}]".format(self.aileron,
                                                                       self.elevator,
                                                                       self.rudder,
                                                                       self.thrust)
+
+    @staticmethod
+    def range_check(value, delta, min, max):
+        if value + delta > max:
+            value = max
+        elif value + delta < min:
+            value = min
+        else:
+            value = value + delta
+        return value
+
+
 
 
 class FlightControlDelta:

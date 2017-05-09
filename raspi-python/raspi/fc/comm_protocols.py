@@ -1,9 +1,12 @@
 import struct		# for decoding data strings
-from raspi.fc import communication
-from raspi.fc.communication import FlightControlState
+from raspi.fc.communication import AbstractCommunicationProtocol
+from raspi.raspi_logging import get_logger
 
 
-class MultiwiiSerialProtocol(communication.AbstractCommunicationProtocol):
+class MultiwiiSerialProtocol(AbstractCommunicationProtocol):
+
+    def send_rc_data(self, fcs):
+        self.send_rc_data(8, fcs) #TODO fix this!
 
     def send_rc_data(self, data_length, data):
         checksum = 0
@@ -80,10 +83,15 @@ class MultiwiiSerialProtocol(communication.AbstractCommunicationProtocol):
             'MSP_IS_SERIAL': 211,
             'MSP_DEBUG': 254,
         }
+        super().__init__("multiwii")
 
-    def build_rc_signal(self, flight_control_input):
-        aileron = flight_control_input.change_aileron
-        thrust = flight_control_input.thrust
-        elevator = flight_control_input.change_elevator
-        rudder = flight_control_input.change_rudder
-        return FlightControlState(aileron, thrust, elevator, rudder)
+
+class LogOnlyProtocol(AbstractCommunicationProtocol):
+
+    logger = get_logger(__name__)
+
+    def __init__(self):
+        super().__init__("log_only")
+
+    def send_rc_data(self, fcs):
+        self.logger.info("A [{}], E [{}], R [{}], T [{}]".format(fcs.aileron, fcs.elevator, fcs.rudder, fcs.thrust))
