@@ -4,7 +4,8 @@ import time
 import serial
 
 from raspi import raspi_logging
-from raspi.fc import multiwii_serial_protocol
+from raspi.fc.comm_protocols import MultiwiiSerialProtocol
+from raspi.fc.comm_protocols import LogOnlyProtocol
 from raspi.fc.communication import FlightControlDelta
 from raspi.fc.communication import FlightControlState
 from raspi.fc.flight_sequences import grounded_sequence
@@ -16,6 +17,11 @@ from raspi.raspi_logging import get_logger
 class FlightController:
 
     logger = get_logger(__name__)
+
+    protocol_switcher = {
+        "log_only": LogOnlyProtocol(),
+        "multiwii": MultiwiiSerialProtocol()
+    }
 
     def __init__(self, name, port):
 
@@ -42,9 +48,9 @@ class FlightController:
 
 
         ###############################
-        # Select Serial Protocol
+        # Select Communication Protocol
         ##############################
-        self.protocol = multiwii_serial_protocol.MultiwiiSerialProtocol()
+        self.protocol = self.protocol_switcher.get("log_only")
 
         ###############################
         # Initialize Global Variables
@@ -172,7 +178,7 @@ class FlightController:
                     else:
                         self.control_state.apply(self.control_state_delta)
                         self.logger.debug("Applied delta [{}] to state [{}]".format(self.control_state_delta, self.control_state))
-                        #self.protocol.send_rc_data(8, self.control_state)
+                        self.protocol.send_rc_data(self.control_state)
                         time.sleep(self.timeMSP)
             self.logger.info("Closing connection with flight controller chip")
             #self.ser.close()

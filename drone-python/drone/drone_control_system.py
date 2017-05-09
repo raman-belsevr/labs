@@ -46,13 +46,12 @@ class DroneControlSystem(AbstractDroneControlSystem):
     def __init__(self, name):
         super(DroneControlSystem, self).__init__(name)
 
-        # set empty flight sequence
-        self.flight_sequence = grounded_sequence()
-        print("calling iterator with %", self.flight_sequence)
-        self.flight_sequence_iterator = FlightSequenceSteps(self.flight_sequence)
-
         # initialize flight controller
         self.flight_controller = FlightController("spf3", "usb_port")
+
+        # set empty flight sequence
+        self.flight_sequence = None
+        self.flight_sequence_iterator = FlightSequenceSteps(self.flight_sequence, self.flight_controller)
 
         # initialize battery sensor
         self.battery_sensor = BatterySensor(Util.sensor_id(Sensor.battery, ""))
