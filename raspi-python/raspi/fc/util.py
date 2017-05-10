@@ -1,3 +1,6 @@
+from json import JSONEncoder
+
+
 class Util:
 
     @staticmethod
@@ -54,3 +57,9 @@ class Util:
 
         else:  # if not a negative number, simply convert to decimal
             return int(hex_value, 16)
+
+
+class SimpleEncoder(JSONEncoder):
+
+    def default(self, o):
+        return o.__dict__

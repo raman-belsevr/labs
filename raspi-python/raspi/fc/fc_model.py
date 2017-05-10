@@ -8,10 +8,11 @@ from raspi.fc.comm_protocols import MultiwiiSerialProtocol
 from raspi.fc.comm_protocols import LogOnlyProtocol
 from raspi.fc.communication import FlightControlDelta
 from raspi.fc.communication import FlightControlState
-from raspi.fc.flight_sequences import grounded_sequence
 from raspi.fc.flight_sequences import hover_sequence
 from raspi.fc.flight_state_machine import FlightSequenceSteps
 from raspi.raspi_logging import get_logger
+from raspi.fc.communication import FlightLog
+from datetime import datetime
 
 
 class FlightController:
@@ -39,6 +40,7 @@ class FlightController:
         self.PRINT = 0    # Print data to terminal
         self.timeMSP = 0.02 # sleeping interval in spin-loop
 
+
         ##################################
         # Communication with serial port #
         ##################################
@@ -51,6 +53,8 @@ class FlightController:
         # Select Communication Protocol
         ##############################
         self.protocol = self.protocol_switcher.get("log_only")
+        self.flight_log = FlightLog(datetime.now().strftime("%Y%m%d-%H%M%S"))
+
 
         ###############################
         # Initialize Global Variables
@@ -174,13 +178,17 @@ class FlightController:
 
                     self.control_state_delta = self.flight_sequence_stepper.next()
                     if self.control_state_delta is None:
+                        self.flight_log.flush()
                         self.logger.debug("Finished executing flight sequence [{}]".format(self.flight_sequence))
                     else:
                         self.control_state.apply(self.control_state_delta)
                         self.logger.debug("Applied delta [{}] to state [{}]".format(self.control_state_delta, self.control_state))
+                        self.flight_log.append(self.control_state)
                         self.protocol.send_rc_data(self.control_state)
                         time.sleep(self.timeMSP)
             self.logger.info("Closing connection with flight controller chip")
+            self.flight_log.close()
             #self.ser.close()
         except Exception as e:
+            self.logger.exception("Exception!!!")
             self.logger.error("Exception in operating flight controller loop %s", str(e))
