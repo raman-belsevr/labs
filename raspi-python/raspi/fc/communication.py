@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 from raspi.raspi_logging import get_logger
+from raspi.fc.util import SimpleEncoder
+import json
 
 
 class AbstractCommunicationProtocol(metaclass=ABCMeta):
@@ -28,6 +30,7 @@ class FlightControl(Enum):
 class FlightControlState:
 
     logger = get_logger(__name__)
+    json_encoder = SimpleEncoder()
 
     def __init__(self, aileron, elevator, rudder, thrust):
         self.aileron = aileron
@@ -75,7 +78,6 @@ class FlightControlState:
 
 
 
-
 class FlightControlDelta:
 
     def __init__(self, delta_aileron, delta_elevator, delta_rudder, delta_thrust):
@@ -95,3 +97,43 @@ class FlightControlDelta:
                                                                           self.delta_elevator,
                                                                           self.delta_rudder,
                                                                           self.delta_thrust)
+
+
+class FlightLog:
+    """
+    Captures the flight control state (A, E, R, T) values at each time instant as received
+    by a Flight Controller
+    """
+
+    buffer_limit = 100
+    log_file_extension = "fclog"
+    log_file_dir = "logs"
+    logger = get_logger(__name__)
+
+    def __init__(self, output_file):
+        self.log = []
+        self.output_file = self.log_file_dir + "/" + output_file + "." + self.log_file_extension
+        self.file_handle = open(self.output_file, 'a')
+        self.logger.info("Flight log at [{}]".format(self.output_file))
+
+    def append(self, flight_control_data):
+        if flight_control_data is not None:
+            json_str = flight_control_data.to_json()
+            self.logger.info("json string is [{}]".format(json_str))
+            self.log.append(flight_control_data.to_json())
+            if len(self.log) > self.buffer_limit:
+                for line in self.log:
+                    self.file_handle.write(line)
+                self.log.clear()
+
+    def flush(self):
+        if len(self.log) > 0:
+            self.file_handle.writelines(self.log)
+            self.file_handle.flush()
+            self.log.clear()
+
+    def close(self):
+        self.close()
+
+    def __str__(self):
+        return "Flight Log at [{}]".format(self.output_file)
