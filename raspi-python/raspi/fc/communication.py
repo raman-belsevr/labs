@@ -21,10 +21,31 @@ class AbstractCommunicationProtocol(metaclass=ABCMeta):
 
 class FlightControl(Enum):
 
-    aileron = 1
+    aileron  = 1
     elevator = 2
-    rudder = 3
-    thrust = 4
+    rudder   = 3
+    thrust   = 4
+
+    AILERON_MIN  = -100
+    AILERON_MAX  =  100
+    AILERON_RIGHT_MID = AILERON_MAX/2
+    AILERON_LEFT_MID  = AILERON_MIN/2
+
+    ELEVATOR_MIN = -100
+    ELEVATOR_MAX =  100
+    ELEVATOR_ZERO =  (ELEVATOR_MIN + ELEVATOR_MAX)/2 # 0
+    ELEVATOR_FORWARD_MID  = ELEVATOR_MAX/2
+    ELEVATOR_BACKWARD_MID = ELEVATOR_MIN/2
+
+    RUDDER_MIN   = -100
+    RUDDER_MAX   =  100
+    RUDDER_RIGHT_MID = RUDDER_MAX/2
+    RUDDER_LEFT_MID  = RUDDER_MIN/2
+
+    THROTTLE_MIN =    0
+    THROTTLE_MAX =  100
+    THROTTLE_MID =  (THROTTLE_MAX - THROTTLE_MIN)/2
+    THROTTLE_DELTA =  1
 
 
 class FlightControlState:

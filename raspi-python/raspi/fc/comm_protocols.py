@@ -6,7 +6,14 @@ from raspi.raspi_logging import get_logger
 class MultiwiiSerialProtocol(AbstractCommunicationProtocol):
 
     def send_rc_data(self, fcs):
-        self.send_rc_data(8, fcs) #TODO fix this!
+        self.send_rc_data(8, self.adjust_flight_control_data(fcs)) #TODO fix this!
+
+    @staticmethod
+    def adjust_flight_control_data(fcs):
+        # valid range = 0, 2000
+        values = [1500 + (fcs.aileron/100)*500, 1500 + (fcs.elevator / 100) * 500, 1500 + (fcs.rudder / 100) * 500,
+                  1500 + (fcs.throttle / 100) * 500]
+        return values
 
     def send_rc_data(self, data_length, data):
         checksum = 0
