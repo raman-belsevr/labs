@@ -35,11 +35,11 @@ YAW_DEMAND_FACTOR       = 0.5
 
 # Essential imports ================================================================
 
-from pidcontrol import Stability_PID_Controller, Yaw_PID_Controller, Hover_PID_Controller
+from sim.physics.pid_control import  Stability_PID_Controller, Yaw_PID_Controller, Hover_PID_Controller
 import math
 
-# FMU class ========================================================================
 
+# FMU class ========================================================================
 class FMU(object):
 
     def __init__(self, logfile=None):

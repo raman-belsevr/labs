@@ -7,7 +7,7 @@ import sim.model.params as params
 class Quadcopter:
     """ Quadcopter class
 
-    state  - 1 dimensional vector but used as 13 x 1. [x, y, z, xd, yd, zd, qw, qx, qy, qz, p, q, r]
+    state  - 1 dimensional vector but used as 13 x 1. [x, y, z, xd, yd, zd, quternion, p, q, r]
              where [qw, qx, qy, qz] is quternion and [p, q, r] are angular velocity [roll_dot, pitch_dot, yaw_dot]
     F      - 1 x 1, thrust output from controller
     M      - 3 x 1, moments output from controller
