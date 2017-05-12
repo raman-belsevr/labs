@@ -19,6 +19,7 @@ pidcontrol.py - PID Controller classes for Python
 
 import math
 
+
 class PID_Controller(object):
     '''
     General PID control class. 
@@ -64,7 +65,7 @@ class PID_Controller(object):
         self.Eprev = E
 
         return correction
-        
+
 class Demand_PID_Controller(PID_Controller):
     '''
     A class to handle the interaction of demand (joystick, transmitter) and PID control.
@@ -115,6 +116,7 @@ class Demand_PID_Controller(PID_Controller):
                                 
         return correction
 
+
 class GPS_PID_Controller(PID_Controller):
     '''
     A class to support Computer-Assisted piloting to a GPS location
@@ -159,6 +161,7 @@ class GPS_PID_Controller(PID_Controller):
         self.Eprev = E
         
         return correction if abs(correction) < 1 else correction*1/abs(correction)
+
 
 class Stability_PID_Controller(PID_Controller):
     '''
@@ -205,6 +208,7 @@ class Yaw_PID_Controller(Demand_PID_Controller):
 
         return correction if abs(correction) < 10 else 0 # XXX This is a #@!&ty way to angle-correct. why in the world.
 
+
 class Hover_PID_Controller(PID_Controller):
     '''
     A class for Hover-In-Place (position / altitude hold).
@@ -223,7 +227,7 @@ class Hover_PID_Controller(PID_Controller):
         # Magnitude of maximum correction
         self.max_correction = max_correction
 
-        
+
     def get_correction(self, position, target=None, timestep=1):
         '''
         Returns current PID correction based on position and stick demand.

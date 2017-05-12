@@ -27,7 +27,9 @@ class GenericController(object):
         # Supports keyboard polling
         self.keys = []
         self.name = name
-        self.platform = platform()[0:platform().find('-')]
+        # not working curently, object not callable
+        #self.platform = platform()[0:platform().find('-')]
+
         self.row_height = 30
         self.paused = False
         self.ready = False

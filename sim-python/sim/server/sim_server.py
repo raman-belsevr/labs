@@ -29,8 +29,7 @@ from sim.control.log_replay_controller import LogReplayController as Controller
 
 # Simulation parameters ===========================================================
 
-# Timeout for receiving data from client
-TIMEOUT_SEC      = 1.0
+
 
 # Other imports ===================================================================
 
@@ -41,6 +40,9 @@ import os
 
 from sim.server.socket_server import serve_socket
 from sim.physics.fmu import FMU
+from sim.server.utils import Util
+
+
 
 # Helper functions ================================================================
 
@@ -101,10 +103,11 @@ controller = Controller(('Stabilize', 'Hold Altitude', 'Unused'))
 client = serve_socket(int(argv[1]))
 
 # Receive working directory path from client
-pyquadsim_directory = receive_string(client)
+sim_directory = Util.receive_string(client)
 
 # Create logs folder if needed
-logdir = pyquadsim_directory + '/logs'
+logdir = sim_directory + '/logs'
+
 if not os.path.exists(logdir):
     os.mkdir(logdir)
 
@@ -125,20 +128,25 @@ def get_additional_data(client, receiveFloats):
 # Forever loop will be halted by VREP client or by exception
 while True:
 
+    """
+    In a closed loop, receive telemetry data from drone (position, acceleration etc.)
+    and demands from the controller (hand-held(rx) or autonomous) and compute the thrust,
+    that are sent back to the client (drone).
+    """
     try:
 
         currtime = time.time()
         print(currtime - prevtime)
         prevtime = currtime
 
-        # Get core data from client
-        core_data = receive_floats(client, 4)
+        # Get core data from client (the drone)
+        core_data = Util.receive_floats(client, 4)
 
         # Quit on timeout
         if not core_data: exit(0)
 
         # Get extra data from client
-        extraData = get_additional_data(client, receive_floats)
+        extraData = get_additional_data(client, Util.receive_floats)
 
         # Unpack IMU data        
         timestep = core_data[0]  # seconds
@@ -153,7 +161,7 @@ while True:
         thrusts = fmu.get_motors((pitch, roll, yaw), demands, timestep, extraData)
 
         # Send thrusts to client
-        send_floats(client, thrusts)
+        Util.send_floats(client, thrusts)
 
     except Exception:
 

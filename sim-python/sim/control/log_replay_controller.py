@@ -2,13 +2,15 @@ from sim.control.generic_controller import GenericController
 from enum import Enum
 import json
 
+
 class LogReplayController(GenericController):
     """
     Replay flight controls from a log file
     """
 
-    def __init__(self, log_file):
-        super().__init__("log_file_replay")
+    def __init__(self, switch_labels, log_file="./controller.log"):
+        super().__init__("log_file_replay", switch_labels)
+
         self.log_file = open(log_file, "r")
         self.current_chunk = []
         self.current_log = None

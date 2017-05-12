@@ -1,11 +1,13 @@
 import numpy as np
 from math import sin, cos, asin, atan2, sqrt
 
+
 def RotToRPY(R):
     phi = asin(R[1,2])
     theta = atan2(-R[0,2]/cos(phi),R[2,2]/cos(phi))
     psi = atan2(-R[1,0]/cos(phi),R[1,1]/cos(phi))
     return phi, theta, psi
+
 
 def RPYToRot(phi, theta, psi):
     """
@@ -14,6 +16,7 @@ def RPYToRot(phi, theta, psi):
     return np.array([[cos(psi)*cos(theta) - sin(phi)*sin(psi)*sin(theta), cos(theta)*sin(psi) + cos(psi)*sin(phi)*sin(theta), -cos(phi)*sin(theta)],
                      [-cos(phi)*sin(psi), cos(phi)*cos(psi), sin(phi)],
                      [cos(psi)*sin(theta) + cos(theta)*sin(phi)*sin(psi), sin(psi)*sin(theta) - cos(psi)*cos(theta)*sin(phi), cos(phi)*cos(theta)]])
+
 
 def RotToQuat(R):
     """

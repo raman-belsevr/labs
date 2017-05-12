@@ -18,6 +18,7 @@ socket_server.py - Python code for serving a socket on an IP address
 import socket
 import time
 
+
 def serve_socket(port):
     '''
     Serves a blocking socket on the specified port.  Returns a new socket object 
@@ -33,7 +34,8 @@ def serve_socket(port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
-            sock.bind(('', port))
+            sock.bind(('127.0.0.1', port))
+
             break
             
         except socket.error as err:

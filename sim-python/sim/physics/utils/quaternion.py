@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Quaternion:
     """Quaternions for 3D rotations"""
     def __init__(self, x):
