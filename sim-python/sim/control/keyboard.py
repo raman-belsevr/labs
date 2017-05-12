@@ -30,7 +30,6 @@ import pygame
 import pygame.locals
 from sim.control.generic_controller import  GenericController
 
-
 class Keyboard(GenericController):
     SLOWDOWN_FACTOR = 1
 

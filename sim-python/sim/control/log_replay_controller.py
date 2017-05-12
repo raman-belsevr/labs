@@ -10,6 +10,7 @@ class LogReplayController(GenericController):
 
     def __init__(self, switch_labels, log_file="./controller.log"):
         super().__init__("log_file_replay", switch_labels)
+
         self.log_file = open(log_file, "r")
         self.current_chunk = []
         self.current_log = None
@@ -59,7 +60,6 @@ class LogReplayController(GenericController):
             if not data:
                 break
             yield data
-
 
 class ControlInput(Enum):
     aileron = 0

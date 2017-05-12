@@ -29,6 +29,7 @@ class GenericController(object):
         self.name = name
         # not working curently, object not callable
         #self.platform = platform()[0:platform().find('-')]
+
         self.row_height = 30
         self.paused = False
         self.ready = False

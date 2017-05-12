@@ -43,6 +43,40 @@ from sim.physics.fmu import FMU
 from sim.server.utils import Util
 
 
+
+# Helper functions ================================================================
+
+def send_floats(client, data):
+
+    client.send(struct.pack('%sf' % len(data), *data))
+
+def unpack_floats(msg, nfloats):
+    return struct.unpack('f'*nfloats, msg)
+
+def receive_floats(client, nfloats):
+    # We use 32-bit floats
+    msgsize = 4 * nfloats
+
+    # Implement timeout
+    start_sec = time.time()
+    remaining = msgsize
+    msg = ''
+    while remaining > 0:
+        msg += client.recv(remaining)
+        remaining -= len(msg)
+        if (time.time()-start_sec) > TIMEOUT_SEC:
+            return None
+
+    return unpack_floats(msg, nfloats)
+
+
+def receive_string(client):
+    return client.recv(int(receive_floats(client, 1)[0]))
+
+
+def scalar_to_3d(s, a):
+    return [s*a[2], s*a[6], s*a[10]]
+    
 # LogFile class ======================================================================================================
 
 class LogFile(object):
@@ -73,6 +107,7 @@ sim_directory = Util.receive_string(client)
 
 # Create logs folder if needed
 logdir = sim_directory + '/logs'
+
 if not os.path.exists(logdir):
     os.mkdir(logdir)
 

@@ -35,6 +35,7 @@ def serve_socket(port):
 
         try:
             sock.bind(('127.0.0.1', port))
+
             break
             
         except socket.error as err:

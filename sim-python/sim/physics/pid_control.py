@@ -66,7 +66,6 @@ class PID_Controller(object):
 
         return correction
 
-
 class Demand_PID_Controller(PID_Controller):
     '''
     A class to handle the interaction of demand (joystick, transmitter) and PID control.
@@ -227,6 +226,7 @@ class Hover_PID_Controller(PID_Controller):
 
         # Magnitude of maximum correction
         self.max_correction = max_correction
+
 
     def get_correction(self, position, target=None, timestep=1):
         '''
