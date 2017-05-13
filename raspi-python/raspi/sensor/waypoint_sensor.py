@@ -1,5 +1,5 @@
 from raspi.sensor import sensor_model
-from gpiozero import DistanceSensor
+from drone.drone_model import WayPoint
 
 
 class WaypointSensor(sensor_model.AbstractSensor):
@@ -22,13 +22,14 @@ class WaypointSensor(sensor_model.AbstractSensor):
         input_value = self.sensor.waypoint
         return sensor_model.SensorReading(input_value)
 
-class  LatLongAltSensor:
+
+class LatLongAltSensor:
 
     def __init__(self):
         pass
 
     def waypoint(self):
-        return Way
+        return WayPoint(0,0,0)
 
 
 

@@ -26,6 +26,12 @@ class FlightControl(Enum):
     rudder   = 3
     thrust   = 4
 
+    MULTI_DIR_CONTROL_MIN = -100
+    MULTI_DIR_CONTROL_MAX =  100
+
+    UNI_DIR_CONTROL_MIN = 0
+    UNI_DIR_CONTROL_MAX = 100
+
     AILERON_MIN  = -100
     AILERON_MAX  =  100
     AILERON_RIGHT_MID = AILERON_MAX/2
@@ -76,10 +82,10 @@ class FlightControlState:
 
     def apply(self, control_state_delta):
         self.logger.info("Applying control state delta [{}] to [{}]", control_state_delta, self)
-        self.aileron = self.range_check(self.aileron, control_state_delta.delta_aileron, 0, 2000)
-        self.elevator = self.range_check(self.elevator, control_state_delta.delta_elevator, 0, 2000)
-        self.rudder = self.range_check(self.rudder, control_state_delta.delta_rudder, 0, 2000)
-        self.thrust = self.range_check(self.thrust, control_state_delta.delta_thrust, 0, 2000)
+        self.aileron = self.range_check(self.aileron, control_state_delta.delta_aileron, -100, 100)
+        self.elevator = self.range_check(self.elevator, control_state_delta.delta_elevator, -100, 100)
+        self.rudder = self.range_check(self.rudder, control_state_delta.delta_rudder, -100, 100)
+        self.thrust = self.range_check(self.thrust, control_state_delta.delta_thrust, 0, 100)
 
     def __str__(self):
         return "Flight Control State A [{}] E[{}] R[{}] T[{}]".format(self.aileron,
@@ -96,7 +102,6 @@ class FlightControlState:
         else:
             value = value + delta
         return value
-
 
 
 class FlightControlDelta:
@@ -139,9 +144,9 @@ class FlightLog:
 
     def append(self, flight_control_data):
         if flight_control_data is not None:
-            json_str = flight_control_data.to_json()
+            json_str = json.dumps(flight_control_data.__dict__)
             self.logger.info("json string is [{}]".format(json_str))
-            self.log.append(flight_control_data.to_json())
+            self.log.append(json_str + '\n')
             if len(self.log) > self.buffer_limit:
                 for line in self.log:
                     self.file_handle.write(line)
