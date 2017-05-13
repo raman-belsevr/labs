@@ -12,9 +12,9 @@ class LogReplayController(GenericController):
         super().__init__("log_file_replay", switch_labels)
 
         self.log_file = open(log_file, "r")
-        self.current_chunk = []
         self.current_log = None
         self.current_log_index = 0
+        self.logs = self.log_file.readlines()
 
     def _get_pitch(self):
         return self._read_control_input(ControlInput.elevator.name)
@@ -26,27 +26,23 @@ class LogReplayController(GenericController):
         return self._read_control_input(ControlInput.rudder.name)
 
     def _get_throttle(self):
-        return self._read_control_input(ControlInput.throttle.name)
+        return self._read_control_input(ControlInput.thrust.name)
 
     def _get_switchval(self):
         return 0
 
     def _mark_done(self):
-        self.current_log_index += 1
         self.current_log = None
 
     def _read_control_input(self, control_input):
         # chunk has not been loaded or has been completely processed
         if self.current_log is None:
-            if self.current_log_index == len(self.current_chunk):
-                self.current_chunk = self.next_chunk(self.log_file)
-                if len(self.current_chunk) == 0:
-                    self.log_file.close()
-                    return super().END_OF_INPUT
-                self.current_log_index = 0
-            current_input = self.current_chunk[self.current_log_index]
-            self.current_log = json.loads(current_input)
-
+            if self.current_log_index == len(self.logs):
+                return 100
+            else:
+                self.current_log = json.loads(self.logs[self.current_log_index])
+                print("[{}] -> Line: [{}]".format(self.current_log_index, self.current_log))
+                self.current_log_index += 1
         return self.current_log[control_input]
 
     @staticmethod
@@ -61,8 +57,24 @@ class LogReplayController(GenericController):
                 break
             yield data
 
+    @staticmethod
+    def next_line(file_ob):
+        for line in file_ob:
+            yield line
+
+
 class ControlInput(Enum):
     aileron = 0
     elevator = 1
     rudder = 2
-    throttle = 3
+    thrust = 3
+
+
+if __name__ == "__main__":
+    reply_controller = LogReplayController(None, "/Users/ramang/research/work/belsevr/labs/logs/20170512-121540.fclog")
+    while True:
+        reply_controller._read_control_input("aileron")
+        reply_controller._read_control_input("elevator")
+        reply_controller._read_control_input("rudder")
+        reply_controller._read_control_input("thrust")
+        reply_controller._mark_done()
