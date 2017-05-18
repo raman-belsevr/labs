@@ -22,6 +22,11 @@ Translates simulation values from V-REP to sensor values for quadrotor model
 # Import your controller here =====================================================
 
 from sim.control.log_replay_controller import LogReplayController as Controller
+from sim.physics.simulation import Simulation
+from sim.model.quad_copter import QuadCopter
+from sim.model.quad_config import QuadConfig
+from sim.model.quad_config import EnvironmentConfig
+
 # from sim.control.keyboard import Keyboard as Controller
 
 # Mission-specific data ===========================================================
@@ -62,7 +67,8 @@ class LogFile(object):
 
 
 class SimulationServer:
-    def __init__(self, port, input_control_file):
+    def __init__(self, simulation, port, input_control_file):
+        self.simulation = simulation
         self.port = port
         self.input_control_file = input_control_file
 
@@ -95,6 +101,8 @@ class SimulationServer:
 
     def start(self):
         print("about to enter loop")
+        timestep = 0.0
+        dt = 0.02
 
         # Forever loop will be halted by VREP client or by exception
         while True:
@@ -107,21 +115,24 @@ class SimulationServer:
             try:
                 currtime = time.time()
                 prevtime = currtime
+                timestep += dt
 
                 # Get core data from client (the drone)
-                core_data = Util.receive_floats(self.client, 4)
+                (roll, pitch, yaw) = simulation.quad.quad_state.attitude
+                #core_data = Util.receive_floats(self.client, 4)
 
                 # Quit on timeout
-                if not core_data: exit(0)
+                #if not core_data: exit(0)
 
                 # Get extra data from client
-                extraData = self.get_additional_data(self.client, Util.receive_floats)
+                #extraData = self.get_additional_data(self.client, Util.receive_floats)
+                altitude = simulation.quad.quad_state.position[2]
 
                 # Unpack IMU data
-                timestep = core_data[0]  # seconds
-                pitch = core_data[1]  # positive = nose up
-                roll = core_data[2]  # positive = right down
-                yaw = core_data[3]  # positive = nose right
+                #timestep = core_data[0]  # seconds
+                #pitch = core_data[1]  # positive = nose up
+                #roll = core_data[2]  # positive = right down
+                #yaw = core_data[3]  # positive = nose right
 
                 # Poll controller
                 demands = self.controller.poll()
@@ -129,9 +140,12 @@ class SimulationServer:
                 print("ts [{}], pitch [{}], roll [{}], yaw[{}], demands[{}]".format(timestep, pitch, roll, yaw, demands))
 
                 # Get motor thrusts from quadrotor model
-                thrusts = self.fmu.get_motors((pitch, roll, yaw), demands, timestep, extraData)
+                thrusts = self.fmu.get_motors((pitch, roll, yaw), demands, timestep, altitude)
 
+                # Convert motor thrust into resulting total Torque on the quadcopter
                 # Send thrusts to client
+                simulation.
+
                 Util.send_floats(self.client, thrusts)
 
             except Exception:
@@ -144,7 +158,19 @@ class SimulationServer:
 if __name__ == "__main__":
     port = int(argv[1])
     input_control_file = argv[2]
-    server = SimulationServer(port, input_control_file)
+
+    # create a quad copter
+    quad_config = QuadConfig(mass = 0.18, arm_length = 0.5, height = 0.5)
+    quadcopter = QuadCopter(quad_config)
+
+    # configure the environment
+    environment = EnvironmentConfig(g = 9.8, rho = 1.223)
+
+    # put a given quad copter in a given environment
+    simulation = Simulation(quadcopter, environment)
+
+    # start a simulation server
+    server = SimulationServer(port, simulation, input_control_file)
 
     print("Starting server loop")
     server.start()
