@@ -1,19 +1,28 @@
 import numpy as np
 
+
 class QuadConfig:
 
-    def __init__(self, mass, arm_length, height):
+    def __init__(self, mass, arm_length, height, max_omega):
         self.mass = mass
         self.arm_length = arm_length
         self.inertia = np.array([(0.00025, 0, 2.55e-6), (0, 0.000232, 0), (2.55e-6, 0, 0.0003738)]);
         self.inv_inertia =  np.linalg.inv(self.inertia)
         self.height = height
+        self.max_omega = max_omega
 
         km = 1.5e-9
         kf = 6.11e-8
         self.r = km / kf
         L = self.arm_length
         H = self.height
+
+        self.k_tau_current = 0.01  # torque proportionality constant
+        self.k_voltage_omega = 0.01  # back EMF proportionality constant
+        self.k_tau_thrust = 0.01 # tau is proportional to applied thrust
+        self.k_tau_drag = 0.01 # a constant that relates torque from drag force
+        self.area_propeller = 1 # area of propeller
+        self.k_friction_constant = 1 # friction constant , drag force = constant * velocity
 
         #  [ F  ]         [ F1 ]
         #  | M1 |  = A *  | F2 |
@@ -34,6 +43,7 @@ class QuadConfig:
                                     (0, 0, H, 1)])
 
         self.minF = 0.0
+
 
 
 class EnvironmentConfig:

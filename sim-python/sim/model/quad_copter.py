@@ -1,6 +1,5 @@
 import numpy as np
 from sim.physics.utils import utils as algebra_utils
-from sim.physics.utils.quaternion import Quaternion
 
 class QuadCopter:
 
@@ -68,7 +67,6 @@ class QuadState:
         rot = algebra_utils.RPYToRot(roll, pitch, yaw)
         quat = algebra_utils.RotToQuat(rot)
         return quat
-
 
 
     def update(self, dt, F, M):
