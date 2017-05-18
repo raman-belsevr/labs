@@ -144,7 +144,7 @@ class SimulationServer:
 
                 # Convert motor thrust into resulting total Torque on the quadcopter
                 # Send thrusts to client
-                simulation.
+                simulation.apply_thrust(thrusts)
 
                 Util.send_floats(self.client, thrusts)
 

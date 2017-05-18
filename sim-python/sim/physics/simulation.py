@@ -10,6 +10,17 @@ class Simulation:
         self.quad = quadcopter
         self.env = environment
 
+        kv = quadcopter.quad_config.k_voltage_omega # back EMF proportionality constant
+        kt = quadcopter.quad_config.k_tau_current # torque proportionality constant
+        k_tau = quadcopter.quad_config.k_tau_thrust  # tau is proportional to applied thrust
+        rp  =  self.quad.quad_config.radius_propeller
+        ap  =  self.quad.quad_config.area_propeller
+
+        area_propeller = quadcopter.quad_config.area_propeller
+        self.k_thrust_omega = (((kv * k_tau) / kt) ** 2) * 2 * self.env.rho * area_propeller
+        self.k_drag = 0.5 * (rp ** 3) * self.quad.quad_config.k_tau_drag * ap
+
+
 
     def state_dot(self, t, F, M):
         quat = self.quad.quad_state.quat
@@ -57,7 +68,71 @@ class Simulation:
         M = quad_config.A[1:].dot(prop_thrusts_clamped)
         self.quad.quad_state = integrate.odeint(self.state_dot, self.state, [0, dt], args=(F, M))[1]
 
-    def apply_thrust(self, T):
+    def apply_thrust(self, thrust_pilot, dt):
         # convert the applied thrust into total Torque (Moments) and
         # compute its effect on linear and angular acceleration
+
+        propeller_omega_vector  = self.pilot_thrust_to_propeller_omega(thrust_pilot)
+        thrust = self.propeller_omega_to_thrust(propeller_omega_vector)
+        acceleration = self.acceleration(thrust)
+
+        torque_vector = self.propeller_omega_to_tau(propeller_omega_vector)
+        omega_vector = self.quad.quad_state.omega()
+        angular_acceleration = self.torque_to_omega_dot(omega_vector, torque_vector)
+
+        # apply
+        new_velocity = self.quad.quad_state.velocity + dt * acceleration;
+        new_position = self.quad.quad_state.position + dt * new_velocity;
+        new_omega = omega_vector + dt * angular_acceleration;
+
+        self.quad.quad_state.angular_velocity = new_omega
+        self.quad.quad_state.velocity = new_velocity
+        self.quad.quad_state.position = new_position
+
+    def propeller_omega_to_thrust(self, omega_vector):
+        thrust = self.k_thrust_omega * np.array([0, 0, sum(omega_vector ** 2)])
+        return thrust
+
+    def pilot_thrust_to_propeller_omega(self, thrust, max_thrust):
+        '''
+        convert thrust applied to a motor into the induced angular velocity
+        :param thrust: applied thrust
+        :param max_thrust: maximum thrust possible
+        :return: induced angular velocity
+        '''
+
+        T = np.array(thrust)
+        return (T / max_thrust) * self.quad.quad_config.max_omega
+
+    def propeller_omega_to_tau(self, omega_vector):
+        '''
+        given angular velocity vector of each motor, return the rotational torque vector on the
+        quadcopter
+        :param omega_vector:
+        :return:
+        '''
+
+        L = self.quad.quad_config.arm_length
+        tau_roll  = L * self.k_thrust_omega * (omega_vector[0] ** 2 - omega_vector[2] ** 2)
+        tau_pitch = L * self.k_thrust_omega * (omega_vector[1] ** 2 - omega_vector[3] ** 2)
+        tau_yaw = L * self.k_drag * ((omega_vector[0]**2 + omega_vector[2]**2) - (omega_vector[1]**2 + omega_vector[3]**2))
+
+        return np.array([tau_roll, tau_pitch, tau_yaw])
+
+    def torque_to_omega_dot(self, omega_vector, tau_vector):
+        I_inverse = self.quad.quad_config.inv_inertia
+        I = self.quad.quad_config.inertia
+        omega_dot = I_inverse * (tau_vector - omega_vector * (I * omega_vector))
+        return omega_dot
+
+    def acceleration(self, thrust):
+        gravity = np.array([0, 0, -self.env.g])
+
+        R = self.quad.quad_state.quat.as_rotation_matrix();
+        T = R * thrust;
+        Fd = -self.quad.quad_config.k_friction_constant * self.quad.quad_state.velocity;
+        a = gravity + 1 / self.quad.quad_config.mass * T + Fd;
+        return a
+
+    def omega_to_theta_dot(self, omega):
         pass
