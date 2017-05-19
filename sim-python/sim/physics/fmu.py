@@ -81,10 +81,10 @@ class FMU(object):
         throttle_demand = controller_input[3]
 
         # Grab value of three-position switch
-        switch = controller_input[4]
+        switch = 0  # controller_input[4] #TODO obtain switch from controller
 
         # Grab altitude from sonar
-        altitude = extra_data[0]
+        altitude = 0 # extra_data[0] #TODO obtain altitude from sonar
 
         # Lock onto altitude when switch goes on
         if switch == 1:

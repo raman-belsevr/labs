@@ -37,7 +37,8 @@ class QuadState:
 
         # orientation in 3d space, (roll, pitch, yaw) and equivalent representation in quaternion
         self.attitude = attitude
-        self.quat = QuadState.rpy_to_quat(attitude)
+        roll, pitch, yaw = attitude
+        self.quat = QuadState.rpy_to_quat(roll, pitch, yaw)
 
         # velocity vector components in the axis
         self.velocity = np.zeros(3)
@@ -68,7 +69,7 @@ class QuadState:
         quat = algebra_utils.RotToQuat(rot)
         return quat
 
-
+    """
     def update(self, dt, F, M):
         # limit thrust and Moment
         L = params.arm_length
@@ -78,5 +79,5 @@ class QuadState:
         F = np.sum(prop_thrusts_clamped)
         M = params.A[1:].dot(prop_thrusts_clamped)
         self.state = integrate.odeint(self.state_dot, self.state, [0, dt], args=(F, M))[1]
-
+    """
 

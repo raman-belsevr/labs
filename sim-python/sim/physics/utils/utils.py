@@ -1,5 +1,6 @@
 import numpy as np
 from math import sin, cos, asin, atan2, sqrt
+from sim.physics.utils.quaternion import Quaternion
 
 
 def RotToRPY(R):
@@ -53,7 +54,8 @@ def RotToQuat(R):
         qz = 0.25 * S
     
     q = np.sign(qw) * np.array([qw, qx, qy, qz])
-    return q
+    return Quaternion(q)
+
 
 def writeNpArrayToFile(data):
     with open('state.csv','a') as f:

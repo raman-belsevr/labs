@@ -72,7 +72,7 @@ class Simulation:
         # convert the applied thrust into total Torque (Moments) and
         # compute its effect on linear and angular acceleration
 
-        propeller_omega_vector  = self.pilot_thrust_to_propeller_omega(thrust_pilot)
+        propeller_omega_vector  = self.pilot_thrust_to_propeller_omega(thrust_pilot, self.quad.quad_config.max_thrust)
         thrust = self.propeller_omega_to_thrust(propeller_omega_vector)
         acceleration = self.acceleration(thrust)
 
@@ -128,7 +128,7 @@ class Simulation:
     def acceleration(self, thrust):
         gravity = np.array([0, 0, -self.env.g])
 
-        R = self.quad.quad_state.quat.as_rotation_matrix();
+        R = self.quad.quad_state.quaternion().as_rotation_matrix(); #TODO must update quaternion in each timestep
         T = R * thrust;
         Fd = -self.quad.quad_config.k_friction_constant * self.quad.quad_state.velocity;
         a = gravity + 1 / self.quad.quad_config.mass * T + Fd;

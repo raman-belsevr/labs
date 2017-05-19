@@ -67,22 +67,22 @@ class LogFile(object):
 
 
 class SimulationServer:
-    def __init__(self, simulation, port, input_control_file):
+    def __init__(self, simulation, port, controller):
         self.simulation = simulation
         self.port = port
         self.input_control_file = input_control_file
 
         # Serve a socket on the port indicated in the first command-line argument
-        self.client = serve_socket(int(argv[1]))
+        # self.client = serve_socket(int(argv[1]))
 
-        # Require controller
-        self.controller = Controller(('Stabilize', 'Hold Altitude', 'Unused'), input_control_file)
+        # Require input controller
+        self.controller = controller
 
         # Receive working directory path from client
-        sim_directory = Util.receive_string(self.client)
+        # sim_directory = Util.receive_string(self.client)
 
         # Create logs folder if needed
-        logdir = sim_directory + '/logs'
+        logdir = os.getcwd() + '/logs'
         if not os.path.exists(logdir):
             os.mkdir(logdir)
 
@@ -102,7 +102,7 @@ class SimulationServer:
     def start(self):
         print("about to enter loop")
         timestep = 0.0
-        dt = 0.02
+        dt = 0.01
 
         # Forever loop will be halted by VREP client or by exception
         while True:
@@ -114,15 +114,12 @@ class SimulationServer:
             print("inside loop")
             try:
                 currtime = time.time()
-                prevtime = currtime
+                dt = currtime - self.prevtime
+                self.prevtime = currtime
                 timestep += dt
 
                 # Get core data from client (the drone)
                 (roll, pitch, yaw) = simulation.quad.quad_state.attitude
-                #core_data = Util.receive_floats(self.client, 4)
-
-                # Quit on timeout
-                #if not core_data: exit(0)
 
                 # Get extra data from client
                 #extraData = self.get_additional_data(self.client, Util.receive_floats)
@@ -144,9 +141,9 @@ class SimulationServer:
 
                 # Convert motor thrust into resulting total Torque on the quadcopter
                 # Send thrusts to client
-                simulation.apply_thrust(thrusts)
+                simulation.apply_thrust(thrusts, dt)
 
-                Util.send_floats(self.client, thrusts)
+                #Util.send_floats(self.client, thrusts)
 
             except Exception:
 
@@ -156,21 +153,30 @@ class SimulationServer:
 
 
 if __name__ == "__main__":
-    port = int(argv[1])
-    input_control_file = argv[2]
+    #port = int(argv[1])
+    input_control_file = "/Users/raman/work/belsevr/labs/logs/20170512-115903.fclog" #argv[1]
 
     # create a quad copter
-    quad_config = QuadConfig(mass = 0.18, arm_length = 0.5, height = 0.5)
+    quad_config = QuadConfig(mass = 0.18,
+                             arm_length = 0.10,
+                             height = 0.10,
+                             max_rpm= 600,
+                             radius_propeller= 0.04,
+                             max_thrust = 100)
+
     quadcopter = QuadCopter(quad_config)
 
     # configure the environment
-    environment = EnvironmentConfig(g = 9.8, rho = 1.223)
+    environment = EnvironmentConfig(g = 9.8, rho = 1.225)
 
     # put a given quad copter in a given environment
     simulation = Simulation(quadcopter, environment)
 
+    # configure input controller
+    controller = LogReplayController(('Stabilize', 'Hold Altitude', 'Unused'), input_control_file)
+
     # start a simulation server
-    server = SimulationServer(port, simulation, input_control_file)
+    server = SimulationServer(simulation, None, controller)
 
     print("Starting server loop")
     server.start()
