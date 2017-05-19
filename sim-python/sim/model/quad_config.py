@@ -1,19 +1,21 @@
 import numpy as np
-
+from math import pi
 
 class QuadConfig:
 
-    def __init__(self, mass, arm_length, height, max_omega):
+    def __init__(self, mass, arm_length, height, max_rpm, radius_propeller, max_thrust):
         self.mass = mass
         self.arm_length = arm_length
         self.inertia = np.array([(0.00025, 0, 2.55e-6), (0, 0.000232, 0), (2.55e-6, 0, 0.0003738)]);
         self.inv_inertia =  np.linalg.inv(self.inertia)
         self.height = height
-        self.max_omega = max_omega
+        self.max_omega = (max_rpm / 60) * 2 * pi
+        self.radius_propeller = radius_propeller
+        self.max_thrust = max_thrust
 
         km = 1.5e-9
         kf = 6.11e-8
-        self.r = km / kf
+        r = km / kf
         L = self.arm_length
         H = self.height
 

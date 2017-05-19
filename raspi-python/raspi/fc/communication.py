@@ -26,32 +26,35 @@ class FlightControl(Enum):
     rudder   = 3
     thrust   = 4
 
+
+class FlightControlValues:
+
     MULTI_DIR_CONTROL_MIN = -100
-    MULTI_DIR_CONTROL_MAX =  100
+    MULTI_DIR_CONTROL_MAX = 100
 
     UNI_DIR_CONTROL_MIN = 0
     UNI_DIR_CONTROL_MAX = 100
 
-    AILERON_MIN  = -100
-    AILERON_MAX  =  100
-    AILERON_RIGHT_MID = AILERON_MAX/2
-    AILERON_LEFT_MID  = AILERON_MIN/2
+    AILERON_MIN = -100
+    AILERON_MAX = 100
+    AILERON_RIGHT_MID = AILERON_MAX / 2
+    AILERON_LEFT_MID = AILERON_MIN / 2
 
     ELEVATOR_MIN = -100
-    ELEVATOR_MAX =  100
-    ELEVATOR_ZERO =  (ELEVATOR_MIN + ELEVATOR_MAX)/2 # 0
-    ELEVATOR_FORWARD_MID  = ELEVATOR_MAX/2
-    ELEVATOR_BACKWARD_MID = ELEVATOR_MIN/2
+    ELEVATOR_MAX = 100
+    ELEVATOR_ZERO = (ELEVATOR_MIN + ELEVATOR_MAX) / 2  # 0
+    ELEVATOR_FORWARD_MID = ELEVATOR_MAX / 2
+    ELEVATOR_BACKWARD_MID = ELEVATOR_MIN / 2
 
-    RUDDER_MIN   = -100
-    RUDDER_MAX   =  100
-    RUDDER_RIGHT_MID = RUDDER_MAX/2
-    RUDDER_LEFT_MID  = RUDDER_MIN/2
+    RUDDER_MIN = -100
+    RUDDER_MAX = 100
+    RUDDER_RIGHT_MID = RUDDER_MAX / 2
+    RUDDER_LEFT_MID = RUDDER_MIN / 2
 
-    THROTTLE_MIN =    0
-    THROTTLE_MAX =  100
-    THROTTLE_MID =  (THROTTLE_MAX - THROTTLE_MIN)/2
-    THROTTLE_DELTA =  1
+    THROTTLE_MIN = 0
+    THROTTLE_MAX = 100
+    THROTTLE_MID = (THROTTLE_MAX - THROTTLE_MIN) / 2
+    THROTTLE_DELTA = 1
 
 
 class FlightControlState:
@@ -95,12 +98,13 @@ class FlightControlState:
 
     @staticmethod
     def range_check(value, delta, min, max):
-        if value + delta > max:
+        desired = value + delta
+        if desired > max:
             value = max
-        elif value + delta < min:
+        elif desired < min:
             value = min
         else:
-            value = value + delta
+            value = desired
         return value
 
 
