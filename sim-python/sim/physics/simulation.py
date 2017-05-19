@@ -126,12 +126,12 @@ class Simulation:
         return omega_dot
 
     def acceleration(self, thrust):
-        gravity = np.array([0, 0, -self.env.g])
+        gravity = np.array([0, 0, -self.env.g]).transpose()
 
         R = self.quad.quad_state.quaternion().as_rotation_matrix(); #TODO must update quaternion in each timestep
-        T = R * thrust;
-        Fd = -self.quad.quad_config.k_friction_constant * self.quad.quad_state.velocity;
-        a = gravity + 1 / self.quad.quad_config.mass * T + Fd;
+        T = np.mat(R) * np.mat(thrust).transpose().flatten()
+        Fd = -self.quad.quad_config.k_friction_constant * np.array(self.quad.quad_state.velocity)
+        a = gravity + 1 / self.quad.quad_config.mass * T + Fd
         return a
 
     def omega_to_theta_dot(self, omega):
