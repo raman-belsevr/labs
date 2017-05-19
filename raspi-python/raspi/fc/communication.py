@@ -27,7 +27,7 @@ class FlightControl(Enum):
     thrust   = 4
 
 
-class FlightControlValues:
+class FlightControlState:
 
     MULTI_DIR_CONTROL_MIN = -100
     MULTI_DIR_CONTROL_MAX = 100
@@ -37,8 +37,7 @@ class FlightControlValues:
 
     AILERON_MIN = -100
     AILERON_MAX = 100
-    AILERON_RIGHT_MID = AILERON_MAX / 2
-    AILERON_LEFT_MID = AILERON_MIN / 2
+    AILERON_ZERO = (AILERON_MIN + AILERON_MAX)/2
 
     ELEVATOR_MIN = -100
     ELEVATOR_MAX = 100
@@ -50,14 +49,12 @@ class FlightControlValues:
     RUDDER_MAX = 100
     RUDDER_RIGHT_MID = RUDDER_MAX / 2
     RUDDER_LEFT_MID = RUDDER_MIN / 2
+    RUDDER_ZERO = (RUDDER_MIN + RUDDER_MAX)/2
 
     THROTTLE_MIN = 0
     THROTTLE_MAX = 100
-    THROTTLE_MID = (THROTTLE_MAX - THROTTLE_MIN) / 2
+    THROTTLE_MID = (THROTTLE_MAX + THROTTLE_MIN) / 2
     THROTTLE_DELTA = 1
-
-
-class FlightControlState:
 
     logger = get_logger(__name__)
     json_encoder = SimpleEncoder()
@@ -84,7 +81,7 @@ class FlightControlState:
         self.thrust += delta
 
     def apply(self, control_state_delta):
-        self.logger.info("Applying control state delta [{}] to [{}]", control_state_delta, self)
+        self.logger.info("Applying control state delta [{}] to [{}]".format(control_state_delta, self))
         self.aileron = self.range_check(self.aileron, control_state_delta.delta_aileron, -100, 100)
         self.elevator = self.range_check(self.elevator, control_state_delta.delta_elevator, -100, 100)
         self.rudder = self.range_check(self.rudder, control_state_delta.delta_rudder, -100, 100)

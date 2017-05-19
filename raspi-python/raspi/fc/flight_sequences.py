@@ -7,9 +7,9 @@ from raspi.fc.flight_state_machine import HoverFlightState
 
 
 def climb_hover_descent_grounded():
-    climb = FlightStage(ClimbFlightState(100), 5)
+    climb = FlightStage(ClimbFlightState(5), 5)
     hover = FlightStage(HoverFlightState(), 5)
-    descend = FlightStage(DescendFlightState(100), 5)
+    descend = FlightStage(DescendFlightState(5), 5)
     grounded = FlightStage(GroundedFlightState(), 5)
     stage_list = list()
     stage_list.append(climb)

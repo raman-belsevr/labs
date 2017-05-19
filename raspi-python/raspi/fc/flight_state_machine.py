@@ -147,7 +147,10 @@ class HoverFlightState(AbstractFlightState):
         self.delta = FlightControlDelta(0, 0, 0, 0)
 
     def initial_control_state(self):
-        return FlightControlState(1500, 1500, 1500, 2000)
+        return FlightControlState(FlightControlState.AILERON_ZERO,
+                                  FlightControlState.ELEVATOR_ZERO,
+                                  FlightControlState.RUDDER_ZERO,
+                                  FlightControlState.THROTTLE_MID)
 
     def control_state_delta(self):
         return self.delta
@@ -155,12 +158,15 @@ class HoverFlightState(AbstractFlightState):
 
 class ClimbFlightState(AbstractFlightState):
 
-    def __init__(self, rate = 100):
+    def __init__(self, rate = 5):
         super(ClimbFlightState, self).__init__("climb")
         self.rate = rate
 
     def initial_control_state(self):
-        return FlightControlState(1500, 1500, 1500, 2000)
+        return FlightControlState(FlightControlState.AILERON_ZERO,
+                                  FlightControlState.ELEVATOR_ZERO,
+                                  FlightControlState.RUDDER_ZERO,
+                                  FlightControlState.THROTTLE_MID)
 
     def control_state_delta(self):
         return FlightControlDelta(0, 0, 0, self.rate)
@@ -168,38 +174,47 @@ class ClimbFlightState(AbstractFlightState):
 
 class DescendFlightState(AbstractFlightState):
 
-    def __init__(self, rate = 100):
+    def __init__(self, rate = -5):
         super(DescendFlightState, self).__init__("descent")
         self.rate = rate
 
     def initial_control_state(self):
-        return FlightControlState(1500, 1500, 1500, 2000)
+        return FlightControlState(FlightControlState.AILERON_ZERO,
+                                  FlightControlState.ELEVATOR_ZERO,
+                                  FlightControlState.RUDDER_ZERO,
+                                  FlightControlState.THROTTLE_MID)
 
     def control_state_delta(self):
-        return FlightControlDelta(0, 0, 0, -self.rate)
+        return FlightControlDelta(0, 0, 0, self.rate)
 
 
 class CruiseForwardFlightState(AbstractFlightState):
 
-    def __init__(self, rate = 100):
+    def __init__(self, rate = 0):
         super(CruiseForwardFlightState, self).__init__("cruise_forward")
         self.rate = rate
 
     def initial_control_state(self):
-        return FlightControlState(1500, 1500, 1500, 2000)
+        return FlightControlState(FlightControlState.AILERON_ZERO,
+                                  FlightControlState.ELEVATOR_FORWARD_MID,
+                                  FlightControlState.RUDDER_ZERO,
+                                  FlightControlState.THROTTLE_MID)
 
     def control_state_delta(self):
-        return FlightControlDelta(0, -self.rate, 0, 0)
+        return FlightControlDelta(0, 0, 0, 0)
 
 
 class CruiseBackwardFlightState(AbstractFlightState):
 
-    def __init__(self, rate = 100):
+    def __init__(self, rate = 0):
         super(CruiseBackwardFlightState, self).__init__("cruise_backward")
         self.rate = rate
 
     def initial_control_state(self):
-        return FlightControlState(1500, 1500, 1500, 2000)
+        return FlightControlState(FlightControlState.AILERON_ZERO,
+                                  FlightControlState.ELEVATOR_BACKWARD_MID,
+                                  FlightControlState.RUDDER_ZERO,
+                                  FlightControlState.THROTTLE_MID)
 
     def control_state_delta(self):
         return FlightControlDelta(0, self.rate, 0, 0)
@@ -211,7 +226,10 @@ class GroundedFlightState(AbstractFlightState):
         super(GroundedFlightState, self).__init__("grounded")
 
     def initial_control_state(self):
-        return FlightControlState(1500, 1500, 1500, 0)
+        return FlightControlState(FlightControlState.AILERON_ZERO,
+                                  FlightControlState.ELEVATOR_ZERO,
+                                  FlightControlState.RUDDER_ZERO,
+                                  FlightControlState.THROTTLE_ZERO)
 
     def control_state_delta(self):
         return FlightControlDelta(0, 0, 0, 0)

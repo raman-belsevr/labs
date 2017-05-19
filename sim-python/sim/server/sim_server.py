@@ -43,6 +43,7 @@ import struct
 import time
 import os
 
+from math import pi
 from sim.server.socket_server import serve_socket
 from sim.physics.fmu import FMU
 from sim.server.utils import Util
@@ -99,6 +100,13 @@ class SimulationServer:
     def get_additional_data(client, receiveFloats):
         return receiveFloats(client, 1)
 
+    def adjust_demands(self, demands):
+        aileron = (demands[0]/100) * pi * 2/3  # max 60 degrees
+        elevator = (demands[1] / 100) * pi * 2 / 3  # max 60 degrees
+        rudder = (demands[2] / 100) * pi * 2 / 3  # max 60 degrees
+        thrust = (demands[3]/100) * self.simulation.quad.quad_config.max_thrust
+        return aileron, elevator, rudder, thrust
+
     def start(self):
         print("about to enter loop")
         timestep = 0.0
@@ -133,11 +141,12 @@ class SimulationServer:
 
                 # Poll controller
                 demands = self.controller.poll()
+                adjusted_demands = self.adjust_demands(demands)
 
-                print("ts [{}], pitch [{}], roll [{}], yaw[{}], demands[{}]".format(timestep, pitch, roll, yaw, demands))
+                print("ts [{}], pitch [{}], roll [{}], yaw[{}], demands[{}]".format(timestep, pitch, roll, yaw, adjusted_demands))
 
                 # Get motor thrusts from quadrotor model
-                thrusts = self.fmu.get_motors((pitch, roll, yaw), demands, timestep, altitude)
+                thrusts = self.fmu.get_motors((pitch, roll, yaw), adjusted_demands, timestep, altitude)
 
                 # Convert motor thrust into resulting total Torque on the quadcopter
                 # Send thrusts to client
@@ -154,15 +163,15 @@ class SimulationServer:
 
 if __name__ == "__main__":
     #port = int(argv[1])
-    input_control_file = "/Users/raman/work/belsevr/labs/logs/20170512-115903.fclog" #argv[1]
+    input_control_file = "/Users/raman/work/belsevr/labs/logs/20170518-213922.fclog" #argv[1]
 
     # create a quad copter
     quad_config = QuadConfig(mass = 0.18,
                              arm_length = 0.10,
                              height = 0.10,
-                             max_rpm= 600,
+                             max_rpm= 1000,
                              radius_propeller= 0.04,
-                             max_thrust = 100)
+                             max_thrust = 4000)
 
     quadcopter = QuadCopter(quad_config)
 
