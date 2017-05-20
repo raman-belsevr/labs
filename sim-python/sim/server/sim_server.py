@@ -26,6 +26,7 @@ from sim.physics.simulation import Simulation
 from sim.model.quad_copter import QuadCopter
 from sim.model.quad_config import QuadConfig
 from sim.model.quad_config import EnvironmentConfig
+from sim.visual.quad_plot import Animator
 
 # from sim.control.keyboard import Keyboard as Controller
 
@@ -48,6 +49,7 @@ from sim.server.socket_server import serve_socket
 from sim.physics.fmu import FMU
 from sim.server.utils import Util
 from sim.control.log_replay_controller import LogReplayController
+from raspi.logging import get_logger
 
 
 # LogFile class ======================================================================================================
@@ -68,6 +70,9 @@ class LogFile(object):
 
 
 class SimulationServer:
+
+    logger = get_logger(__name__)
+
     def __init__(self, simulation, port, controller):
         self.simulation = simulation
         self.port = port
@@ -119,7 +124,6 @@ class SimulationServer:
             and demands from the controller (hand-held(rx) or autonomous) and compute the thrust,
             that are sent back to the client (drone).
             """
-            print("inside loop")
             try:
                 currtime = time.time()
                 dt = currtime - self.prevtime
@@ -143,7 +147,7 @@ class SimulationServer:
                 demands = self.controller.poll()
                 adjusted_demands = self.adjust_demands(demands)
 
-                print("ts [{}], pitch [{}], roll [{}], yaw[{}], demands[{}]".format(timestep, pitch, roll, yaw, adjusted_demands))
+                #self.logger.debug("ts [{}], pitch [{}], roll [{}], yaw[{}], demands[{}]".format(timestep, pitch, roll, yaw, adjusted_demands))
 
                 # Get motor thrusts from quadrotor model
                 thrusts = self.fmu.get_motors((pitch, roll, yaw), adjusted_demands, timestep, altitude)
@@ -151,6 +155,7 @@ class SimulationServer:
                 # Convert motor thrust into resulting total Torque on the quadcopter
                 # Send thrusts to client
                 simulation.apply_thrust(thrusts, dt)
+                print("demands [{}] position [{}]".format(demands, self.simulation.quad.quad_state.position))
 
                 #Util.send_floats(self.client, thrusts)
 
@@ -163,15 +168,15 @@ class SimulationServer:
 
 if __name__ == "__main__":
     #port = int(argv[1])
-    input_control_file = "/Users/raman/work/belsevr/labs/logs/20170518-213922.fclog" #argv[1]
+    input_control_file = "/Users/raman/work/belsevr/labs/logs/20170519-162126.fclog" #argv[1]
 
     # create a quad copter
     quad_config = QuadConfig(mass = 0.18,
                              arm_length = 0.10,
                              height = 0.10,
-                             max_rpm= 1000,
+                             max_rpm= 28900,
                              radius_propeller= 0.04,
-                             max_thrust = 4000)
+                             max_thrust = 440 * 9.8)
 
     quadcopter = QuadCopter(quad_config)
 
@@ -187,5 +192,7 @@ if __name__ == "__main__":
     # start a simulation server
     server = SimulationServer(simulation, None, controller)
 
+    animator = Animator(simulation.quad)
+    animator.plot_quad_3d()
     print("Starting server loop")
     server.start()

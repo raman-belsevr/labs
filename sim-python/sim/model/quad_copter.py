@@ -1,11 +1,25 @@
 import numpy as np
 from sim.physics.utils import utils as algebra_utils
+from sim.physics.utils.quaternion import Quaternion
 
 class QuadCopter:
 
     def __init__(self, quad_config):
         self.quad_config = quad_config
         self.quad_state = QuadState(np.zeros(3), np.zeros(3))
+
+    def world_frame(self):
+        """ position returns a 3x6 matrix
+            where row is [x, y, z] column is m1 m2 m3 m4 origin h
+            """
+        origin = self.quad_state.position
+        quat = self.quad_state.quaternion()
+        rot = quat.as_rotation_matrix()
+        wHb = np.r_[np.c_[rot, origin], np.array([[0, 0, 0, 1]])]
+        quadBodyFrame = self.quad_config.body_frame.T
+        quadWorldFrame = wHb.dot(quadBodyFrame)
+        world_frame = quadWorldFrame[0:3]
+        return world_frame
 
 
 class QuadStateDot:
@@ -68,6 +82,8 @@ class QuadState:
         rot = algebra_utils.RPYToRot(roll, pitch, yaw)
         quat = algebra_utils.RotToQuat(rot)
         return quat
+
+
 
     """
     def update(self, dt, F, M):
