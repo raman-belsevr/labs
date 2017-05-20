@@ -38,7 +38,7 @@ class LogReplayController(GenericController):
         # chunk has not been loaded or has been completely processed
         if self.current_log is None:
             if self.current_log_index == len(self.logs):
-                return 100
+                return 0
             else:
                 self.current_log = json.loads(self.logs[self.current_log_index])
                 print("[{}] -> Line: [{}]".format(self.current_log_index, self.current_log))

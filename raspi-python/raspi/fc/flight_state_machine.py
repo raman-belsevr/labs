@@ -174,7 +174,7 @@ class ClimbFlightState(AbstractFlightState):
 
 class DescendFlightState(AbstractFlightState):
 
-    def __init__(self, rate = -5):
+    def __init__(self, rate = 5):
         super(DescendFlightState, self).__init__("descent")
         self.rate = rate
 
@@ -185,7 +185,7 @@ class DescendFlightState(AbstractFlightState):
                                   FlightControlState.THROTTLE_MID)
 
     def control_state_delta(self):
-        return FlightControlDelta(0, 0, 0, self.rate)
+        return FlightControlDelta(0, 0, 0, -self.rate)
 
 
 class CruiseForwardFlightState(AbstractFlightState):

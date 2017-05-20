@@ -81,9 +81,12 @@ class Simulation:
         angular_acceleration = self.torque_to_omega_dot(omega_vector, torque_vector)
 
         # apply
-        new_velocity = self.quad.quad_state.velocity + dt * acceleration;
-        new_position = self.quad.quad_state.position + dt * new_velocity;
-        new_omega = omega_vector + dt * angular_acceleration;
+        new_velocity = self.quad.quad_state.velocity + np.asarray(dt * acceleration).flatten();
+        new_position = self.quad.quad_state.position + np.asarray(dt * new_velocity).flatten();
+        if new_position[2] < 0:
+            new_position[2] = 0
+
+        new_omega = omega_vector + np.asarray(dt * angular_acceleration).flatten();
 
         self.quad.quad_state.angular_velocity = new_omega
         self.quad.quad_state.velocity = new_velocity
@@ -113,26 +116,27 @@ class Simulation:
         '''
 
         L = self.quad.quad_config.arm_length
-        tau_roll  = L * self.k_thrust_omega * (omega_vector[0] ** 2 - omega_vector[2] ** 2)
-        tau_pitch = L * self.k_thrust_omega * (omega_vector[1] ** 2 - omega_vector[3] ** 2)
+        tau_roll  = L * self.k_thrust_omega * ( (omega_vector[0] ** 2 + omega_vector[3] ** 2) - (omega_vector[1] ** 2 + omega_vector[2] ** 2))
+        tau_pitch = L * self.k_thrust_omega * ( (omega_vector[0] ** 2 + omega_vector[1] ** 2) - (omega_vector[2] ** 2 + omega_vector[3] ** 2))
         tau_yaw = L * self.k_drag * ((omega_vector[0]**2 + omega_vector[2]**2) - (omega_vector[1]**2 + omega_vector[3]**2))
 
         return np.array([tau_roll, tau_pitch, tau_yaw])
 
     def torque_to_omega_dot(self, omega_vector, tau_vector):
-        I_inverse = self.quad.quad_config.inv_inertia
-        I = self.quad.quad_config.inertia
-        omega_dot = I_inverse * (tau_vector - omega_vector * (I * omega_vector))
+        I_inverse = np.mat(self.quad.quad_config.inv_inertia)
+        I = np.mat(self.quad.quad_config.inertia)
+        omega = np.mat(omega_vector).transpose()
+        tau = np.mat(tau_vector).transpose()
+        delta =  np.mat(np.dot(np.diag(I), np.asarray(omega))) # should be 1 * 1
+        omega_dot = I_inverse * (tau - omega * delta)
+
+
         return omega_dot
 
     def acceleration(self, thrust):
-        gravity = np.array([0, 0, -self.env.g]).transpose()
-
+        gravity = np.mat([[0], [0], [-self.quad.quad_config.mass * self.env.g]]) # 3 * 1 matrix
         R = self.quad.quad_state.quaternion().as_rotation_matrix(); #TODO must update quaternion in each timestep
-        T = np.mat(R) * np.mat(thrust).transpose().flatten()
-        Fd = -self.quad.quad_config.k_friction_constant * np.array(self.quad.quad_state.velocity)
+        T = np.mat(R) * np.mat(thrust).transpose()
+        Fd = np.mat(-self.quad.quad_config.k_friction_constant * np.array(self.quad.quad_state.velocity)).transpose()
         a = gravity + 1 / self.quad.quad_config.mass * T + Fd
         return a
-
-    def omega_to_theta_dot(self, omega):
-        pass
